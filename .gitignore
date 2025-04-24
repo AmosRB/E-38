@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# dotenv
+.env
+
+# Mac system files
+.DS_Store
+
+# VSCode settings
+.vscode/
+
+# Coverage reports
+coverage/
+
+# OS
+Thumbs.db

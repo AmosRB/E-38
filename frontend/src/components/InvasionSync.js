@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = "https://invasion-api.onrender.com";
+const API_BASE = "https://e-38.onrender.com";
 
 export default function InvasionSync({ landings, aliens, setLandings, setAliens }) {
   // שליחה לשרת

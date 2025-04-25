@@ -151,7 +151,7 @@ app.get('/api/route', async (req, res) => {
   const { fromLat, fromLng, toLat, toLng } = req.query;
   try {
     const routeRes = await axios.get(
-      `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=polyline`
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=polyline`
     );
     res.json(routeRes.data);
   } catch (err) {
@@ -159,9 +159,13 @@ app.get('/api/route', async (req, res) => {
   }
 });
 
+// ❌ מחיקת כל הפלישות
+app.delete('/api/invasion', (req, res) => {
+  landings = [];
+  aliens = [];
+  res.json({ message: "🗑️ All landings and aliens deleted" });
+});
+
 app.listen(PORT, () => {
   console.log(`🛰️ Server running on port ${PORT}`);
 });
-
-
-//גרסה שעוד לא עלתה לחלוקת זיהוי רק על ידי השרת

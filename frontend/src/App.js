@@ -73,10 +73,15 @@ export default function App() {
 
   return (
     <div style={{ cursor: cursorStyle }}>
-      <Navbar onActivateCreate={() => {
-        setCreateMode(true);
-        setCursorStyle("crosshair");
-      }} />
+   <Navbar
+  onActivateCreate={() => {
+    setCreateMode(true);
+    setCursorStyle("crosshair");
+  }}
+  setLandings={setLandings}
+  setAliens={setAliens}
+/>
+
       <AlienManager aliens={aliens} setAliens={setAliens} />
       <InvasionSync landings={landings} aliens={aliens} />
       <MapView

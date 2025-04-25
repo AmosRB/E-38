@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = "https://invasion-api.onrender.com";
+const API_BASE = "https://e-38.onrender.com";
 
-export default function Navbar({ onActivateCreate }) {
+export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
   const [landingCount, setLandingCount] = useState(0);
   const [alienCount, setAlienCount] = useState(0);
 
@@ -42,19 +41,46 @@ export default function Navbar({ onActivateCreate }) {
       <div>
         🛸 {landingCount} | 👽 {alienCount}
       </div>
-      <button
-        onClick={onActivateCreate}
-        style={{
-          background: "white",
-          color: "black",
-          border: "none",
-          padding: "8px 12px",
-          borderRadius: "5px",
-          cursor: "pointer"
-        }}
-      >
-        Create Landing ⚡
-      </button>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button
+          onClick={onActivateCreate}
+          style={{
+            background: "white",
+            color: "black",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: "5px",
+            cursor: "pointer"
+          }}
+        >
+          Create Landing ⚡
+        </button>
+
+        <button
+          onClick={async () => {
+            if (window.confirm("Are you sure you want to delete ALL landings and aliens?")) {
+              try {
+                await axios.delete(`${API_BASE}/api/invasion`);
+                setLandings([]);
+                setAliens([]);
+                console.log("🧹 Deleted locally and remotely.");
+              } catch (err) {
+                console.error("❌ Failed to delete invasion data:", err.message);
+              }
+            }
+          }}
+          style={{
+            background: "red",
+            color: "white",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: "5px",
+            cursor: "pointer"
+          }}
+        >
+          Delete All 🗑️
+        </button>
+      </div>
     </div>
   );
 }

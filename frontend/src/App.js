@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import MapView from './components/MapView';
 import AlienManager from './components/AlienManager';
@@ -56,7 +56,7 @@ export default function App() {
       const route = await getRoute([latlng.lat, latlng.lng], target);
       return {
         id: startId + index,
-        route,
+        route: route.length > 1 ? route : [[latlng.lat, latlng.lng], [latlng.lat, latlng.lng]],
         positionIdx: 0,
         landingId
       };
@@ -66,6 +66,36 @@ export default function App() {
     setLandings(prev => [...prev, newLanding]);
     setAliens(prev => [...prev, ...newAliens]);
   };
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const orphan = landings.find(l => !aliens.some(a => a.landingId === l.id));
+      if (!orphan) return;
+
+      const directions = [0, 45, 90, 135, 180, 225, 270, 315];
+      const startId = aliens.length > 0 ? Math.max(...aliens.map(a => a.id)) + 1 : 1;
+
+      const alienPromises = directions.map(async (angle, index) => {
+        const rad = angle * Math.PI / 180;
+        const to = [
+          orphan.lat + 0.05 * Math.cos(rad),
+          orphan.lng + 0.05 * Math.sin(rad)
+        ];
+        const route = await getRoute([orphan.lat, orphan.lng], to);
+        return {
+          id: startId + index,
+          route: route.length > 1 ? route : [[orphan.lat, orphan.lng], [orphan.lat, orphan.lng]],
+          positionIdx: 0,
+          landingId: orphan.id
+        };
+      });
+
+      const newAliens = await Promise.all(alienPromises);
+      setAliens(prev => [...prev, ...newAliens]);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [landings, aliens]);
 
   return (
     <div style={{ cursor: cursorStyle }}>
@@ -79,7 +109,7 @@ export default function App() {
       />
 
       <AlienManager aliens={aliens} setAliens={setAliens} />
-      <InvasionSync landings={landings} aliens={aliens} />
+      <InvasionSync landings={landings} aliens={aliens} setLandings={setLandings} setAliens={setAliens} />
       <MapView
         center={center}
         landings={landings}

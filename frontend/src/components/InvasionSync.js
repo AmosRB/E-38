@@ -1,11 +1,9 @@
-
 import { useEffect } from 'react';
 import axios from 'axios';
 
 const API_BASE = "https://e-38.onrender.com";
 
 export default function InvasionSync({ landings, aliens, setLandings, setAliens }) {
-  // שליחה לשרת
   useEffect(() => {
     const interval = setInterval(() => {
       if (landings.length === 0 && aliens.length === 0) return;
@@ -51,7 +49,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens 
     return () => clearInterval(interval);
   }, [landings, aliens]);
 
-  // קבלת נתונים מהשרת כולל alienCode ו-landingCode
+  // קבלת נתונים מהשרת כולל מיזוג חכם
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -72,14 +70,30 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens 
           .filter(f => f.properties?.type === 'alien')
           .map(f => ({
             id: f.properties.id,
-            route: [[f.geometry.coordinates[1], f.geometry.coordinates[0]]],
+            route: [
+              [f.geometry.coordinates[1], f.geometry.coordinates[0]],
+              [f.geometry.coordinates[1], f.geometry.coordinates[0]]
+            ],
             positionIdx: 0,
             landingId: f.properties.landingId,
             alienCode: f.properties.alienCode || null
           }));
 
-        setLandings(remoteLandings);
-        setAliens(remoteAliens);
+          setLandings(prev => {
+            const byId = Object.fromEntries(prev.map(l => [l.id, l]));
+            remoteLandings.forEach(remote => {
+              byId[remote.id] = { ...byId[remote.id], ...remote };
+            });
+            return Object.values(byId);
+          });
+          
+
+        setAliens(prev => {
+          const existingIds = new Set(prev.map(a => a.id));
+          const merged = [...prev, ...remoteAliens.filter(a => !existingIds.has(a.id))];
+          return merged;
+        });
+
       } catch (err) {
         console.error("❌ Failed to load invasion data:", err.message);
       }

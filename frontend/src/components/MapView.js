@@ -25,6 +25,7 @@ const createEmojiIcon = (emoji, label, isLanding = false) =>
                 font-size: 10px;
                 margin-bottom: 2px;
                 white-space: nowrap;
+                font-family: monospace;
               ">${label}</div>`
             : ''
         }
@@ -38,6 +39,7 @@ const createEmojiIcon = (emoji, label, isLanding = false) =>
                 font-size: 12px;
                 margin-top: -6px;
                 white-space: nowrap;
+                font-family: monospace;
               ">${label}</div>`
             : ''
         }
@@ -69,10 +71,10 @@ export default function MapView({ center, landings, aliens, onMapClick }) {
 
       {[...landings, ...aliens].map((feature, idx) => {
         const isLanding = feature.name !== undefined;
-        const position = isLanding ? [feature.lat, feature.lng] : feature.route[feature.positionIdx];
+        const position = isLanding ? [feature.lat, feature.lng] : feature.route?.[feature.positionIdx] || [0, 0];
         const label = isLanding
-          ? `${feature.name} (${feature.landingCode || '?'})`
-          : feature.alienCode || feature.id;
+          ? `${feature.landingCode || '?'}${feature.name && feature.name !== 'Unknown' ? ` (${feature.name})` : ''}`
+          : feature.alienCode && feature.alienCode !== 'null' ? feature.alienCode : `👽${feature.id}`;
 
         return (
           <Marker

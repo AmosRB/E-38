@@ -1,29 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
 
-const API_BASE = "https://e-38.onrender.com";
-
-export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
-  const [landingCount, setLandingCount] = useState(0);
-  const [alienCount, setAlienCount] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/invasion`);
-        const features = res.data.features;
-        const landings = features.filter(f => f.properties?.type === "landing");
-        const aliens = features.filter(f => f.properties?.type === "alien");
-        setLandingCount(landings.length);
-        setAlienCount(aliens.length);
-      } catch (err) {
-        console.error("❌ Failed to fetch invasion stats:", err.message);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
+export default function Navbar({ onActivateCreate, clearAll, landingCount, alienCount }) {
   return (
     <div style={{
       height: "50px",
@@ -36,10 +13,10 @@ export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
       fontFamily: "sans-serif"
     }}>
       <div style={{ fontWeight: "bold", fontSize: "18px" }}>
-        Invasion Monitor
+        E-38 Invasion Monitor
       </div>
       <div>
-        🛸 {landingCount} | 👽 {alienCount}
+        🛸 {landingCount}  | 👽 {alienCount} 
       </div>
       <div style={{ display: "flex", gap: "10px" }}>
         <button
@@ -60,9 +37,8 @@ export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
           onClick={async () => {
             if (window.confirm("Are you sure you want to delete ALL landings and aliens?")) {
               try {
-                await axios.delete(`${API_BASE}/api/invasion`);
-                setLandings([]);
-                setAliens([]);
+                await fetch("https://e-38.onrender.com/api/invasion", { method: 'DELETE' });
+                clearAll();
                 console.log("🧹 Deleted locally and remotely.");
               } catch (err) {
                 console.error("❌ Failed to delete invasion data:", err.message);
@@ -83,4 +59,4 @@ export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
       </div>
     </div>
   );
-}
+} // ✅ counts now from props only

@@ -4,6 +4,7 @@ import MapView from './components/MapView';
 import AlienManager from './components/AlienManager';
 import InvasionSync from './components/InvasionSync';
 import getRoute from './utils/getRoute';
+import useInvasionStore from './hooks/useInvasionStore';
 import axios from 'axios';
 
 const center = [31.5, 34.8];
@@ -20,8 +21,14 @@ const getNearestTownName = async (lat, lng) => {
 };
 
 export default function App() {
-  const [landings, setLandings] = useState([]);
-  const [aliens, setAliens] = useState([]);
+  const {
+    landings,
+    aliens,
+    upsertLanding,
+    upsertAliens,
+    clearAll
+  } = useInvasionStore();
+
   const [createMode, setCreateMode] = useState(false);
   const [cursorStyle, setCursorStyle] = useState("default");
 
@@ -37,13 +44,16 @@ export default function App() {
 
     const locationName = await getNearestTownName(latlng.lat, latlng.lng);
     const landingId = Date.now();
+    const landingCode = String.fromCharCode(65 + (landings.length % 26));
 
     const newLanding = {
       id: landingId,
       lat: latlng.lat,
       lng: latlng.lng,
-      name: locationName
+      name: locationName,
+      landingCode
     };
+    upsertLanding(newLanding);
 
     const directions = [0, 45, 90, 135, 180, 225, 270, 315];
     const startId = getNextAlienId();
@@ -58,13 +68,13 @@ export default function App() {
         id: startId + index,
         route: route.length > 1 ? route : [[latlng.lat, latlng.lng], [latlng.lat, latlng.lng]],
         positionIdx: 0,
-        landingId
+        landingId,
+        alienCode: `${landingCode}${index + 1}`
       };
     });
 
     const newAliens = await Promise.all(alienPromises);
-    setLandings(prev => [...prev, newLanding]);
-    setAliens(prev => [...prev, ...newAliens]);
+    upsertAliens(newAliens);
   };
 
   useEffect(() => {
@@ -86,30 +96,49 @@ export default function App() {
           id: startId + index,
           route: route.length > 1 ? route : [[orphan.lat, orphan.lng], [orphan.lat, orphan.lng]],
           positionIdx: 0,
-          landingId: orphan.id
+          landingId: orphan.id,
+          alienCode: `${orphan.landingCode || '?'}${index + 1}`
         };
       });
 
       const newAliens = await Promise.all(alienPromises);
-      setAliens(prev => [...prev, ...newAliens]);
+      upsertAliens(newAliens);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [landings, aliens]);
+  }, [landings, aliens, upsertAliens]);
 
   return (
     <div style={{ cursor: cursorStyle }}>
       <Navbar
+        landingCount={landings.length}
+        alienCount={aliens.length}
         onActivateCreate={() => {
           setCreateMode(true);
           setCursorStyle("crosshair");
         }}
-        setLandings={setLandings}
-        setAliens={setAliens}
+        clearAll={clearAll}
       />
 
-      <AlienManager aliens={aliens} setAliens={setAliens} />
-      <InvasionSync landings={landings} aliens={aliens} setLandings={setLandings} setAliens={setAliens} />
+      {landings.length === 0 && aliens.length === 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '60px',
+          left: 0,
+          right: 0,
+          backgroundColor: '#111',
+          color: '#ff5555',
+          textAlign: 'center',
+          padding: '8px',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }}>
+          🔕 No active landings or aliens detected.
+        </div>
+      )}
+
+      <AlienManager aliens={aliens} setAliens={upsertAliens} />
+      <InvasionSync landings={landings} aliens={aliens} setLandings={upsertLanding} setAliens={upsertAliens} />
       <MapView
         center={center}
         landings={landings}

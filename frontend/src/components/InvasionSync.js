@@ -1,106 +1,45 @@
 import { useEffect } from 'react';
-import axios from 'axios';
+import getRoute from '../utils/getRoute';
 
-const API_BASE = "https://e-38.onrender.com";
-
-export default function InvasionSync({ landings, aliens, setLandings, setAliens }) {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (landings.length === 0 && aliens.length === 0) return;
-
-      const geoJSON = {
-        type: "FeatureCollection",
-        features: [
-          ...landings.map(l => ({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [l.lng, l.lat],
-            },
-            properties: {
-              type: "landing",
-              id: l.id,
-              locationName: l.name,
-              landingCode: l.landingCode || null
-            }
-          })),
-          ...aliens.map(a => ({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [
-                a.route[a.positionIdx][1],
-                a.route[a.positionIdx][0]
-              ]
-            },
-            properties: {
-              type: "alien",
-              id: a.id,
-              landingId: a.landingId,
-              alienCode: a.alienCode || null
-            }
-          }))
-        ]
-      };
-
-      axios.post(`${API_BASE}/api/update-invasion`, geoJSON);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [landings, aliens]);
-
-  // קבלת נתונים מהשרת כולל מיזוג חכם
+export default function AlienManager({ aliens, setAliens }) {
   useEffect(() => {
     const interval = setInterval(async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/invasion`);
-        const features = res.data.features;
+      const updated = await Promise.all(
+        aliens.map(async alien => {
+          const newIdx = alien.positionIdx + 1;
 
-        const remoteLandings = features
-          .filter(f => f.properties?.type === 'landing')
-          .map(f => ({
-            id: f.properties.id,
-            lat: f.geometry.coordinates[1],
-            lng: f.geometry.coordinates[0],
-            name: f.properties.locationName || 'Unknown',
-            landingCode: f.properties.landingCode || '?'
-          }));
+          // אם הגיע לסוף המסלול או שהמסלול לא קיים - צור מסלול חדש
+          if (!alien.route || alien.route.length <= 1 || newIdx >= alien.route.length) {
+            const from = alien.route?.[alien.route.length - 1] || [31.5, 34.8];
+            const angle = Math.random() * 360;
+            const to = [
+              from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
+              from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
+            ];
+            const route = await getRoute(from, to);
 
-        const remoteAliens = features
-          .filter(f => f.properties?.type === 'alien')
-          .map(f => ({
-            id: f.properties.id,
-            route: [
-              [f.geometry.coordinates[1], f.geometry.coordinates[0]],
-              [f.geometry.coordinates[1], f.geometry.coordinates[0]]
-            ],
-            positionIdx: 0,
-            landingId: f.properties.landingId,
-            alienCode: f.properties.alienCode || null
-          }));
+            return {
+              ...alien,
+              route: route.length > 1 ? route : [from, from],
+              positionIdx: 0,
+              lastUpdated: Date.now()
+            };
+          }
 
-          setLandings(prev => {
-            const byId = Object.fromEntries(prev.map(l => [l.id, l]));
-            remoteLandings.forEach(remote => {
-              byId[remote.id] = { ...byId[remote.id], ...remote };
-            });
-            return Object.values(byId);
-          });
-          
+          // המשך במסלול קיים
+          return {
+            ...alien,
+            positionIdx: newIdx,
+            lastUpdated: Date.now()
+          };
+        })
+      );
 
-        setAliens(prev => {
-          const existingIds = new Set(prev.map(a => a.id));
-          const merged = [...prev, ...remoteAliens.filter(a => !existingIds.has(a.id))];
-          return merged;
-        });
-
-      } catch (err) {
-        console.error("❌ Failed to load invasion data:", err.message);
-      }
+      setAliens(updated);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [setLandings, setAliens]);
+  }, [aliens, setAliens]);
 
   return null;
 }

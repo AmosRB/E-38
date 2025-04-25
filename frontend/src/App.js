@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import MapView from './components/MapView';
@@ -38,14 +37,12 @@ export default function App() {
 
     const locationName = await getNearestTownName(latlng.lat, latlng.lng);
     const landingId = Date.now();
-    const landingCode = String.fromCharCode(65 + (landings.length % 26)); // A–Z
 
     const newLanding = {
       id: landingId,
       lat: latlng.lat,
       lng: latlng.lng,
-      name: locationName,
-      landingCode
+      name: locationName
     };
 
     const directions = [0, 45, 90, 135, 180, 225, 270, 315];
@@ -61,8 +58,7 @@ export default function App() {
         id: startId + index,
         route,
         positionIdx: 0,
-        landingId,
-        alienCode: `${landingCode}${startId + index}`
+        landingId
       };
     });
 
@@ -73,14 +69,14 @@ export default function App() {
 
   return (
     <div style={{ cursor: cursorStyle }}>
-   <Navbar
-  onActivateCreate={() => {
-    setCreateMode(true);
-    setCursorStyle("crosshair");
-  }}
-  setLandings={setLandings}
-  setAliens={setAliens}
-/>
+      <Navbar
+        onActivateCreate={() => {
+          setCreateMode(true);
+          setCursorStyle("crosshair");
+        }}
+        setLandings={setLandings}
+        setAliens={setAliens}
+      />
 
       <AlienManager aliens={aliens} setAliens={setAliens} />
       <InvasionSync landings={landings} aliens={aliens} />

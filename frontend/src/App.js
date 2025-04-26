@@ -13,6 +13,8 @@ import DefenseManager from './components/DefenseManager';
 import ExplosionManager from './components/ExplosionManager';
 import FighterMovementManager from './components/FighterMovementManager';
 
+import ShotManager from './components/ShotManager';
+
 
 
 
@@ -177,13 +179,6 @@ export default function App() {
   setTakilas={setTakilas}
 />
 
-<BattleManager
-  fighters={fighters}
-  aliens={aliens}
-  setAliens={setAliens}
-  setExplosions={setExplosions}
-/>
-
 <DefenseManager
   fighters={fighters}
   aliens={aliens}
@@ -202,16 +197,23 @@ export default function App() {
   aliens={aliens}
 />
 
+<ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions}>
+  {(shots) => (
+    <MapView
+      center={center}
+      landings={landings}
+      aliens={aliens}
+      takilas={takilas}
+      fighters={fighters}
+      explosions={explosions}
+      shots={shots}
+      onMapClick={handleMapClick}
+    />
+  )}
+</ShotManager>
 
 
-      <MapView
-        center={center}
-        landings={landings}
-        aliens={aliens}
-        takilas={takilas}
-        fighters={fighters}
-        onMapClick={handleMapClick}
-      />
+
       <BottomBar
         onJump={handleJump}
         onCallback={handleCallback}

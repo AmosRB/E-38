@@ -3,17 +3,15 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup, useMapEvents } from '
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// 🎯 יצירת אייקון מתוקן
+// 🌟 יצירת אייקון מתוקן
 const createEmojiIcon = (emoji, label = '', extraHtml = '') => L.divIcon({
   html: `<div style="display: flex; flex-direction: column; align-items: center; font-size: 24px; position: relative;">
            <div>${emoji}</div>
            ${label ? `<div style="font-size: 12px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>` : ''}
            ${extraHtml}
          </div>`,
-  className: '' // להוריד class רקע ברירת מחדל של leaflet
+  className: ''
 });
-
-
 
 function ClickHandler({ onMapClick }) {
   useMapEvents({
@@ -24,19 +22,17 @@ function ClickHandler({ onMapClick }) {
   return null;
 }
 
-export default function MapView({ center, landings, aliens, takilas, fighters, explosions, onMapClick }) {
+export default function MapView({ center, landings, aliens, takilas, fighters, explosions, shots, onMapClick }) {
   return (
     <>
-      <style>
-      {`
+      <style>{`
         @keyframes fadeInOut {
           0% { opacity: 0; }
           10% { opacity: 1; }
           90% { opacity: 1; }
           100% { opacity: 0; }
         }
-      `}
-      </style>
+      `}</style>
 
       <MapContainer center={center} zoom={12} style={{ height: '100vh', width: '100%' }}>
         <TileLayer
@@ -79,7 +75,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
           </Marker>
         ))}
 
-        {/* 🧍 לוחמים */}
+        {/* 🧑‍⚖️ לוחמים */}
         {fighters.map(f => (
           <React.Fragment key={`fighter-${f.id}`}>
             <Marker
@@ -97,8 +93,18 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
           </React.Fragment>
         ))}
 
+        {/* 🔫 יריות */}
+        {shots && shots.map((shot, idx) => (
+          <Polyline
+            key={`shot-${idx}`}
+            positions={[shot.from, shot.to]}
+            color="red"
+            weight={3}
+          />
+        ))}
+
         {/* 💥 פיצוצים */}
-        {explosions?.map((exp, idx) => (
+        {explosions && explosions.map((exp, idx) => (
           <Marker
             key={`explosion-${idx}`}
             position={[exp.lat, exp.lng]}
@@ -108,6 +114,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
             )}
           />
         ))}
+
       </MapContainer>
     </>
   );

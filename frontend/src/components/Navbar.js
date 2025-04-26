@@ -1,56 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
 
-const API_BASE = "https://e-38.onrender.com";
-
-export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
-  const [landingCount, setLandingCount] = useState(0);
-  const [alienCount, setAlienCount] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/invasion`);
-        const features = res.data.features;
-        const landings = features.filter(f => f.properties?.type === "landing");
-        const aliens = features.filter(f => f.properties?.type === "alien");
-        setLandingCount(landings.length);
-        setAlienCount(aliens.length);
-      } catch (err) {
-        console.error("❌ Failed to fetch invasion stats:", err.message);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
+export default function Navbar({ onActivateCreate, clearAll, landingCount, alienCount }) {
   return (
-    <div style={{
-      height: "50px",
-      backgroundColor: "black",
-      color: "white",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "0 20px",
-      fontFamily: "sans-serif"
+    <div className="navbar" style={{
+      height: '50px',
+      backgroundColor: 'black',
+      color: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 10px',
+      fontFamily: 'sans-serif',
+      fontSize: '16px',
+      zIndex: 1000
     }}>
-      <div style={{ fontWeight: "bold", fontSize: "18px" }}>
+      <div style={{ fontWeight: 'bold', fontSize: '18px' }}>
         Invasion Monitor
       </div>
-      <div>
-        🛸 {landingCount} | 👽 {alienCount}
-      </div>
-      <div style={{ display: "flex", gap: "10px" }}>
+
+      <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <div>🛸 {landingCount} | 👽 {alienCount}</div>
+
         <button
           onClick={onActivateCreate}
+          className="nav-button"
           style={{
-            background: "white",
-            color: "black",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: "5px",
-            cursor: "pointer"
+            background: 'white',
+            color: 'black',
+            border: 'none',
+            padding: '6px 12px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '14px'
           }}
         >
           Create Landing ⚡
@@ -58,29 +39,47 @@ export default function Navbar({ onActivateCreate, setLandings, setAliens }) {
 
         <button
           onClick={async () => {
-            if (window.confirm("Are you sure you want to delete ALL landings and aliens?")) {
+            if (window.confirm('Are you sure you want to delete ALL landings and aliens?')) {
               try {
-                await axios.delete(`${API_BASE}/api/invasion`);
-                setLandings([]);
-                setAliens([]);
-                console.log("🧹 Deleted locally and remotely.");
+                await fetch('https://e-38.onrender.com/api/invasion', { method: 'DELETE' });
+                clearAll();
+                console.log('🧹 Deleted locally and remotely.');
               } catch (err) {
-                console.error("❌ Failed to delete invasion data:", err.message);
+                console.error('❌ Failed to delete invasion data:', err.message);
               }
             }
           }}
+          className="nav-button"
           style={{
-            background: "red",
-            color: "white",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: "5px",
-            cursor: "pointer"
+            background: 'red',
+            color: 'white',
+            border: 'none',
+            padding: '6px 12px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '14px'
           }}
         >
           Delete All 🗑️
         </button>
       </div>
+
+      {/* רספונסיביות ישירות בדף */}
+      <style>
+        {`
+          @media (max-width: 600px) {
+            .navbar {
+              font-size: 14px;
+              padding: 0 5px;
+              height: 45px;
+            }
+            .nav-button {
+              font-size: 12px;
+              padding: 4px 8px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

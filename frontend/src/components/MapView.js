@@ -1,89 +1,75 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const ClickHandler = ({ onClick }) => {
+const createEmojiIcon = (emoji, label = '') => L.divIcon({
+  html: `<div style="display: flex; flex-direction: column; align-items: center; font-size: 24px;">
+          <div>${emoji}</div>
+          <div style="font-size: 12px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>
+         </div>`
+});
+
+function ClickHandler({ onMapClick }) {
   useMapEvents({
     click(e) {
-      onClick(e.latlng);
-    },
+      onMapClick(e.latlng);
+    }
   });
   return null;
-};
+}
 
-const createEmojiIcon = (emoji, label, isLanding = false) =>
-  L.divIcon({
-    html: `
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        ${
-          isLanding
-            ? `<div style="
-                background-color: black;
-                color: white;
-                padding: 1px 4px;
-                border-radius: 4px;
-                font-size: 10px;
-                margin-bottom: 2px;
-                white-space: nowrap;
-                font-family: monospace;
-              ">${label}</div>`
-            : ''
-        }
-        <div style="font-size: 24px;">${emoji}</div>
-        ${
-          !isLanding
-            ? `<div style="
-                background-color: transparent;
-                color: black;
-                padding: 1px 4px;
-                font-size: 12px;
-                margin-top: -6px;
-                white-space: nowrap;
-                font-family: monospace;
-              ">${label}</div>`
-            : ''
-        }
-      </div>
-    `,
-    className: 'emoji-icon',
-    iconSize: [30, 42],
-    iconAnchor: [15, 21],
-    popupAnchor: [0, -30],
-  });
-
-export default function MapView({ center, landings, aliens, onMapClick }) {
+export default function MapView({ center, landings, aliens, takilas, fighters, explosions, onMapClick }) {
   return (
-    <MapContainer center={center} zoom={10} style={{ height: 'calc(100vh - 50px)' }}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <ClickHandler onClick={onMapClick} />
+    <MapContainer center={center} zoom={10} style={{ height: '100vh', width: '100%' }}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
 
-      {/* ✅ הצגת הנתיבים של החייזרים */}
-      {aliens.map((alien, idx) => (
-        alien.route?.length > 0 ? (
-          <Polyline
-            key={`route-${idx}`}
-            positions={alien.route}
-            color="purple"
-            weight={2}
-          />
-        ) : null
+      <ClickHandler onMapClick={onMapClick} />
+
+      {landings.map(l => (
+        <Marker key={`landing-${l.id}`} position={[l.lat, l.lng]} icon={createEmojiIcon('🛸', l.landingCode)}>
+          <Popup>{l.locationName}</Popup>
+        </Marker>
       ))}
 
-      {[...landings, ...aliens].map((feature, idx) => {
-        const isLanding = feature.name !== undefined;
-        const position = isLanding ? [feature.lat, feature.lng] : feature.route?.[feature.positionIdx] || [0, 0];
-        const label = isLanding
-          ? `${feature.landingCode || '?'}${feature.name && feature.name !== 'Unknown' ? ` (${feature.name})` : ''}`
-          : feature.alienCode && feature.alienCode !== 'null' ? feature.alienCode : `👽${feature.id}`;
+      {aliens.map(a => (
+        a.route && a.route.length > 0 && (
+          <>
+            <Marker key={`alien-${a.id}`} position={[a.route[a.positionIdx][0], a.route[a.positionIdx][1]]} icon={createEmojiIcon('👽', a.alienCode)}>
+              <Popup>Alien {a.alienCode}</Popup>
+            </Marker>
+            <Polyline positions={a.route} color="purple" />
+          </>
+        )
+      ))}
 
-        return (
-          <Marker
-            key={`marker-${idx}`}
-            position={position}
-            icon={createEmojiIcon(isLanding ? '🛸' : '👽', label, isLanding)}
-          />
-        );
-      })}
+      {takilas.map(t => (
+        <Marker key={`takila-${t.id}`} position={[t.lat, t.lng]} icon={createEmojiIcon('🚙', '')}>
+          <Popup>Takila Unit</Popup>
+        </Marker>
+      ))}
+
+      {fighters.map(f => (
+        <Marker key={`fighter-${f.id}`} position={[f.lat, f.lng]} icon={createEmojiIcon('🧍', '')}>
+          <Popup>Fighter</Popup>
+        </Marker>
+      ))}
+
+      {/* 💥 פיצוצים ונפילות */}
+      {explosions?.map((exp, idx) => (
+        <Marker
+          key={`explosion-${idx}`}
+          position={[exp.lat, exp.lng]}
+          icon={createEmojiIcon(
+            exp.type === 'explosion' ? '💥' : '🧎‍♂️❌',
+            ''
+          )}
+        />
+      ))}
+
     </MapContainer>
   );
 }

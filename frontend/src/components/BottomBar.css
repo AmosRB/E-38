@@ -1,0 +1,12 @@
+@media (max-width: 600px) {
+    .bottom-bar button {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+    .bottom-bar {
+      font-size: 14px;
+      height: 45px;
+    }
+  }
+
+  

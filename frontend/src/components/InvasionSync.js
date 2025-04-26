@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_BASE = "https://e-38.onrender.com";
 
-export default function InvasionSync({ landings, aliens, setLandings, setAliens }) {
+export default function InvasionSync({ landings, aliens, setLandings, setAliens, setTakilas, setFighters }) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (landings.length === 0 && aliens.length === 0) return;
@@ -49,7 +49,6 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens 
     return () => clearInterval(interval);
   }, [landings, aliens]);
 
-  // קבלת נתונים מהשרת כולל מיזוג חכם
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -79,14 +78,33 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens 
             alienCode: f.properties.alienCode || null
           }));
 
-          setLandings(prev => {
-            const byId = Object.fromEntries(prev.map(l => [l.id, l]));
-            remoteLandings.forEach(remote => {
-              byId[remote.id] = { ...byId[remote.id], ...remote };
-            });
-            return Object.values(byId);
+          const remoteTakilas = features
+          .filter(f => f.properties?.type === 'takila')
+          .map(f => ({
+            id: f.properties.id,
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
+            lastUpdated: f.properties.lastUpdated,
+            direction: f.properties.direction || Math.random() * 360 // ✅ נוסיף אם חסר
+          }));
+        
+
+        const remoteFighters = features
+          .filter(f => f.properties?.type === 'fighter')
+          .map(f => ({
+            id: f.properties.id,
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
+            lastUpdated: f.properties.lastUpdated
+          }));
+
+        setLandings(prev => {
+          const byId = Object.fromEntries(prev.map(l => [l.id, l]));
+          remoteLandings.forEach(remote => {
+            byId[remote.id] = { ...byId[remote.id], ...remote };
           });
-          
+          return Object.values(byId);
+        });
 
         setAliens(prev => {
           const existingIds = new Set(prev.map(a => a.id));
@@ -94,13 +112,16 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens 
           return merged;
         });
 
+        setTakilas(remoteTakilas);
+        setFighters(remoteFighters);
+
       } catch (err) {
         console.error("❌ Failed to load invasion data:", err.message);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [setLandings, setAliens]);
+  }, [setLandings, setAliens, setTakilas, setFighters]);
 
   return null;
 }

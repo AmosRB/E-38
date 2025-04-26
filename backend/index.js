@@ -1,4 +1,4 @@
-// ✅ index.js מתוקן לגמרי
+// ✅ index.js מתוקן לגמרי (כולל תיקון /api/route)
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -42,15 +42,19 @@ app.get('/api/route', async (req, res) => {
       [parseFloat(fromLat), parseFloat(fromLng)],
       [parseFloat(toLat), parseFloat(toLng)]
     );
-    const encodedPolyline = require('polyline').encode(route.map(([lat, lng]) => [lat, lng]));
-    res.json({ polyline: encodedPolyline });
+    const encodedPolyline = polyline.encode(route.map(([lat, lng]) => [lat, lng]));
+
+    // ✅ מחזירים כמו פורמט OSRM רגיל כדי שהפרונטאנד יעבוד בלי שינוי
+    res.json({
+      routes: [
+        { geometry: encodedPolyline }
+      ]
+    });
   } catch (err) {
     console.error('❌ Failed to fetch route:', err.message);
     res.status(500).json({ error: 'Failed to fetch route' });
   }
 });
-
-
 
 async function createTakila(lat, lng) {
   const randomLat = lat + (Math.random() - 0.5) * 0.1;
@@ -89,7 +93,7 @@ function getNextLandingCode(existingCodes) {
   return toCode(toNumber(maxCode) + 1);
 }
 
-// 🔄 תזוזת חייזרים וטקילות כל שנייה
+// 🔁 תזוזת חייזרים וטקילות כל שנייה
 setInterval(() => {
   const cutoff = Date.now() - 10000;
   const activeLandingIds = [];
@@ -237,5 +241,5 @@ app.delete('/api/takilas', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🛰️ Server running on port ${PORT}`);
+  console.log(`🛡️ Server running on port ${PORT}`);
 });

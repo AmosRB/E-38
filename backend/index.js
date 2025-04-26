@@ -29,6 +29,29 @@ async function getRouteServer(from, to) {
   }
 }
 
+// 🛣️ יצירת נתיב בין שתי נקודות
+app.get('/api/route', async (req, res) => {
+  const { fromLat, fromLng, toLat, toLng } = req.query;
+
+  if (!fromLat || !fromLng || !toLat || !toLng) {
+    return res.status(400).json({ error: 'Missing coordinates' });
+  }
+
+  try {
+    const route = await getRouteServer(
+      [parseFloat(fromLat), parseFloat(fromLng)],
+      [parseFloat(toLat), parseFloat(toLng)]
+    );
+    const encodedPolyline = require('polyline').encode(route.map(([lat, lng]) => [lat, lng]));
+    res.json({ polyline: encodedPolyline });
+  } catch (err) {
+    console.error('❌ Failed to fetch route:', err.message);
+    res.status(500).json({ error: 'Failed to fetch route' });
+  }
+});
+
+
+
 async function createTakila(lat, lng) {
   const randomLat = lat + (Math.random() - 0.5) * 0.1;
   const randomLng = lng + (Math.random() - 0.5) * 0.1;

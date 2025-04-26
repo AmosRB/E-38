@@ -31,7 +31,7 @@ function createFighterRoute(takila, mode) {
     ];
   };
 
-  const firstMoveKm = 0.1; // תנועה ראשונה של 100 מטר
+  const firstMoveKm = 0.2; // תנועה ראשונה של 200 מטר
 
   const waypoint = movePoint(startLat, startLng, angle, firstMoveKm);
 

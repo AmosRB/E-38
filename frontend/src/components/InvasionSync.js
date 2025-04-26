@@ -81,7 +81,8 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
             lat: f.geometry.coordinates[1],
             lng: f.geometry.coordinates[0],
             lastUpdated: f.properties.lastUpdated,
-            direction: f.properties.direction || Math.random() * 360
+            direction: f.properties.direction || Math.random() * 360,
+            takilaCode: f.properties.takilaCode || '' // ✅ מתוקן להוסיף Takila Code
           }));
 
         const remoteFighters = features
@@ -90,7 +91,9 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
             id: f.properties.id,
             lat: f.geometry.coordinates[1],
             lng: f.geometry.coordinates[0],
-            lastUpdated: f.properties.lastUpdated
+            lastUpdated: f.properties.lastUpdated,
+            takilaCode: f.properties.takilaCode || '', // ✅ מתוקן להוסיף Takila Code
+            fighterCode: f.properties.fighterCode || '' // ✅ מתוקן להוסיף Fighter Code
           }));
 
         // 🛠️ מיזוג landings
@@ -111,10 +114,8 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
                 ...byId[remote.id],
                 landingId: remote.landingId,
                 alienCode: remote.alienCode || byId[remote.id].alienCode,
-                // לא לדרוס את ה־route הקיים!
               };
             } else {
-              // חייזר חדש — יוצרים לו מסלול מינימלי
               byId[remote.id] = {
                 id: remote.id,
                 route: [remote.singlePoint, remote.singlePoint],
@@ -127,7 +128,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           return Object.values(byId);
         });
 
-        // 🛠️ מיזוג takilas + שמירת showFightersOut
+        // 🛠️ מיזוג takilas
         setTakilas(prev => {
           const byId = Object.fromEntries(prev.map(t => [t.id, t]));
           remoteTakilas.forEach(remote => {

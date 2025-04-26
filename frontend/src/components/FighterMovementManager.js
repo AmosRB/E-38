@@ -15,20 +15,30 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
 
           const dLat = (targetLat - f.lat) * Math.PI / 180;
           const dLng = (targetLng - f.lng) * Math.PI / 180;
-          const aVal = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(f.lat * Math.PI / 180) * Math.cos(targetLat * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(targetLat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
           const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
           const distanceKm = 6371 * c;
 
-          const speedKmPerSec = 35 / 3600; // 7 קמ"ש
+          // ויסות מהירות דינמי:
+          let speedKmPerSec = 2350 / 3600; // מהירות פתיחה
+
+          if (distanceKm < 0.5) {
+            speedKmPerSec = 200 / 3600;
+          }
+
+          if (distanceKm < 0.1) {
+            speedKmPerSec = 20 / 3600;
+          }
 
           if (f.route && f.positionIdx < f.route.length - 1) {
+            // יש עוד נקודה במסלול הראשוני ➔ ממשיכים לנוע אליה
             const nextWaypoint = f.route[f.positionIdx + 1];
             const waypointLat = nextWaypoint[0];
             const waypointLng = nextWaypoint[1];
 
             const dLatWp = (waypointLat - f.lat) * Math.PI / 180;
             const dLngWp = (waypointLng - f.lng) * Math.PI / 180;
-            const aWp = Math.sin(dLatWp / 2) * Math.sin(dLatWp / 2) + Math.cos(f.lat * Math.PI / 180) * Math.cos(waypointLat * Math.PI / 180) * Math.sin(dLngWp / 2) * Math.sin(dLngWp / 2);
+            const aWp = Math.sin(dLatWp / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(waypointLat * Math.PI / 180) * Math.sin(dLngWp / 2) ** 2;
             const cWp = 2 * Math.atan2(Math.sqrt(aWp), Math.sqrt(1 - aWp));
             const distanceToWaypoint = 6371 * cWp;
 
@@ -49,7 +59,7 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
             return { ...f, lat: newLat, lng: newLng };
           }
 
-          // אחרי שסיימו את ה־route ➔ רודפים אחרי החייזר
+          // סיים את המסלול הקצר? ➔ מתחיל לרדוף אחרי החייזר
           const moveRatio = speedKmPerSec / distanceKm;
 
           const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);

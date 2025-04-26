@@ -3,13 +3,17 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup, useMapEvents } from '
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+// 🎯 יצירת אייקון מתוקן
 const createEmojiIcon = (emoji, label = '', extraHtml = '') => L.divIcon({
   html: `<div style="display: flex; flex-direction: column; align-items: center; font-size: 24px; position: relative;">
-          <div>${emoji}</div>
-          <div style="font-size: 12px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>
-          ${extraHtml}
-         </div>`
+           <div>${emoji}</div>
+           ${label ? `<div style="font-size: 12px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>` : ''}
+           ${extraHtml}
+         </div>`,
+  className: '' // להוריד class רקע ברירת מחדל של leaflet
 });
+
+
 
 function ClickHandler({ onMapClick }) {
   useMapEvents({
@@ -34,7 +38,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
       `}
       </style>
 
-      <MapContainer center={center} zoom={10} style={{ height: '100vh', width: '100%' }}>
+      <MapContainer center={center} zoom={12} style={{ height: '100vh', width: '100%' }}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap contributors"
@@ -42,68 +46,58 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
 
         <ClickHandler onMapClick={onMapClick} />
 
-        {/* נחיתות */}
+        {/* 🛸 נחיתות */}
         {landings.map(l => (
           <Marker key={`landing-${l.id}`} position={[l.lat, l.lng]} icon={createEmojiIcon('🛸', l.landingCode)}>
             <Popup>{l.locationName}</Popup>
           </Marker>
         ))}
 
-        {/* חייזרים */}
+        {/* 👽 חייזרים */}
         {aliens.map(a => (
           a.route && a.route.length > 0 && (
             <React.Fragment key={`alien-${a.id}`}>
-              <Marker position={[a.route[a.positionIdx][0], a.route[a.positionIdx][1]]} icon={createEmojiIcon('👽', a.alienCode)}>
-                <Popup>Alien {a.alienCode}</Popup>
+              <Marker
+                position={[a.route[a.positionIdx][0], a.route[a.positionIdx][1]]}
+                icon={createEmojiIcon('👽', a.alienCode)}
+              >
+                <Popup>{`Alien ${a.alienCode}`}</Popup>
               </Marker>
               <Polyline positions={a.route} color="purple" />
             </React.Fragment>
           )
         ))}
 
-        {/* טקילות */}
+        {/* 🚙 טקילות */}
         {takilas.map(t => (
           <Marker
             key={`takila-${t.id}`}
             position={[t.lat, t.lng]}
-            icon={createEmojiIcon('🚙', '', t.showFightersOut ? `
-              <div style="
-                margin-top: 4px;
-                background-color: #001f3f;
-                color: white;
-                padding: 2px 6px;
-                border-radius: 6px;
-                font-size: 10px;
-                font-weight: bold;
-                animation: fadeInOut 5s forwards;
-              ">
-                Fighters Out
-              </div>
-            ` : '')}
+            icon={createEmojiIcon('🚙', t.takilaCode)}
           >
-            <Popup>Takila Unit</Popup>
+            <Popup>{`Takila ${t.takilaCode}`}</Popup>
           </Marker>
         ))}
 
-   {/* לוחמים */}
-{fighters.map(f => (
-  <React.Fragment key={`fighter-${f.id}`}>
-    <Marker position={[f.lat, f.lng]} icon={createEmojiIcon('🧍', '')}>
-      <Popup>Fighter</Popup>
-    </Marker>
+        {/* 🧍 לוחמים */}
+        {fighters.map(f => (
+          <React.Fragment key={`fighter-${f.id}`}>
+            <Marker
+              position={[f.lat, f.lng]}
+              icon={createEmojiIcon('🧍', f.fighterCode)}
+            >
+              <Popup>{`Fighter ${f.fighterCode}`}</Popup>
+            </Marker>
+            {f.route && f.route.length > 1 && (
+              <Polyline
+                positions={f.route.map(point => [point[0], point[1]])}
+                color="blue"
+              />
+            )}
+          </React.Fragment>
+        ))}
 
-    {/* נתיב הלוחם */}
-    {f.route && f.route.length > 1 && (
-      <Polyline
-        positions={f.route.map(point => [point[0], point[1]])}
-        color="blue" // כחול ללוחמים מסלול צבע
-      />
-    )}
-  </React.Fragment>
-))}
-
-
-        {/* פיצוצים */}
+        {/* 💥 פיצוצים */}
         {explosions?.map((exp, idx) => (
           <Marker
             key={`explosion-${idx}`}

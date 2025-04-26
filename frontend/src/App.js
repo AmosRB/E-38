@@ -7,6 +7,13 @@ import BottomBar from './components/BottomBar';
 import TakilaManager from './components/TakilaManager';
 import getRoute from './utils/getRoute';
 import axios from 'axios';
+import FighterManager from './components/FighterManager';
+import BattleManager from './components/BattleManager';
+import DefenseManager from './components/DefenseManager';
+import ExplosionManager from './components/ExplosionManager';
+import FighterMovementManager from './components/FighterMovementManager';
+
+
 
 
 const center = [31.5, 34.8];
@@ -33,6 +40,7 @@ export default function App() {
   const [fighterCount, setFighterCount] = useState(0);
   const [jumpCount, setJumpCount] = useState(0);
   const [explosions, setExplosions] = useState([]);
+  
 
 
   const getNextAlienId = () => {
@@ -161,6 +169,41 @@ export default function App() {
         setTakilas={setTakilas}
         setFighters={setFighters}
       />
+      <FighterManager
+  takilas={takilas}
+  aliens={aliens}
+  fighters={fighters}
+  setFighters={setFighters}
+  setTakilas={setTakilas}
+/>
+
+<BattleManager
+  fighters={fighters}
+  aliens={aliens}
+  setAliens={setAliens}
+  setExplosions={setExplosions}
+/>
+
+<DefenseManager
+  fighters={fighters}
+  aliens={aliens}
+  setFighters={setFighters}
+  setExplosions={setExplosions}
+/>
+
+<ExplosionManager
+  explosions={explosions}
+  setExplosions={setExplosions}
+/>
+
+<FighterMovementManager 
+  fighters={fighters} 
+  setFighters={setFighters}
+  aliens={aliens}
+/>
+
+
+
       <MapView
         center={center}
         landings={landings}

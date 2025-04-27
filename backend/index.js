@@ -1,8 +1,8 @@
-// ✅ index.js משודרג - כולל קודי Takila ולוחמים
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const polyline = require('polyline');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,8 +19,7 @@ const alienCounters = {}; // landingId -> index
 const takilaCounters = { current: 0 }; // מונה קודי טקילה
 
 function getTakilaCode() {
-  const num = takilaCounters.current;
-  takilaCounters.current++;
+  const num = takilaCounters.current++;
   const toCode = num => {
     let code = '';
     while (num >= 0) {
@@ -44,26 +43,18 @@ async function getRouteServer(from, to) {
   }
 }
 
-// 🛣️ יצירת נתיב בין שתי נקודות
 app.get('/api/route', async (req, res) => {
   const { fromLat, fromLng, toLat, toLng } = req.query;
-
   if (!fromLat || !fromLng || !toLat || !toLng) {
     return res.status(400).json({ error: 'Missing coordinates' });
   }
-
   try {
     const route = await getRouteServer(
       [parseFloat(fromLat), parseFloat(fromLng)],
       [parseFloat(toLat), parseFloat(toLng)]
     );
     const encodedPolyline = polyline.encode(route.map(([lat, lng]) => [lat, lng]));
-
-    res.json({
-      routes: [
-        { geometry: encodedPolyline }
-      ]
-    });
+    res.json({ routes: [{ geometry: encodedPolyline }] });
   } catch (err) {
     console.error('❌ Failed to fetch route:', err.message);
     res.status(500).json({ error: 'Failed to fetch route' });
@@ -75,7 +66,7 @@ async function createTakila(lat, lng) {
   const randomLng = lng + (Math.random() - 0.5) * 0.1;
   const route = await getRouteServer([lat, lng], [randomLat, randomLng]);
 
-  const takila = {
+  takilas.push({
     id: Date.now(),
     lat,
     lng,
@@ -85,12 +76,8 @@ async function createTakila(lat, lng) {
     route,
     positionIdx: 0,
     takilaCode: getTakilaCode()
-  };
-  takilas.push(takila);
-
-  // ❌ אין יותר יצירת לוחמים כאן
+  });
 }
-
 
 function getNextLandingCode(existingCodes) {
   const toNumber = code => code.split('').reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 65 + 1), 0);
@@ -111,7 +98,6 @@ function getNextLandingCode(existingCodes) {
   return toCode(toNumber(maxCode) + 1);
 }
 
-// 🔁 תזוזת חייזרים וטקילות כל שנייה
 setInterval(() => {
   const cutoff = Date.now() - 10000;
   const activeLandingIds = [];
@@ -127,24 +113,21 @@ setInterval(() => {
     || !a.alienCode
   );
 
-takilas.forEach(t => {
-  const now = Date.now();
-  const elapsedSeconds = (now - t.lastUpdated) / 1000;
-  t.lastUpdated = now;
+  takilas.forEach(t => {
+    const now = Date.now();
+    const elapsedSeconds = (now - t.lastUpdated) / 1000;
+    t.lastUpdated = now;
 
-  // ✅ אם לטקילה יש לוחמים בחוץ ➔ לא לזוז
-  if (t.showFightersOut) return;
+    if (t.showFightersOut) return; // טקילה עם לוחמים מחוץ — לא לזוז
 
-  if (t.route && t.positionIdx < t.route.length - 1) {
-    t.positionIdx++;
-    t.lat = t.route[t.positionIdx][0];
-    t.lng = t.route[t.positionIdx][1];
-  }
-});
-
+    if (t.route && t.positionIdx < t.route.length - 1) {
+      t.positionIdx++;
+      t.lat = t.route[t.positionIdx][0];
+      t.lng = t.route[t.positionIdx][1];
+    }
+  });
 }, 1000);
 
-// 🔵 API לקבלת כל המידע
 app.get('/api/invasion', (req, res) => {
   const landingFeatures = landings.map(landing => ({
     type: "Feature",
@@ -176,7 +159,6 @@ app.get('/api/invasion', (req, res) => {
   });
 });
 
-// 🛸 יצירת טקילה
 app.post('/api/create-takila', async (req, res) => {
   const { lat, lng } = req.body;
   if (typeof lat !== 'number' || typeof lng !== 'number') {
@@ -186,7 +168,6 @@ app.post('/api/create-takila', async (req, res) => {
   res.json({ message: "🚙 Takila created successfully." });
 });
 
-// 🔵 עדכון חייזרים ונחיתות
 app.post('/api/update-invasion', (req, res) => {
   const { features } = req.body;
   const now = Date.now();
@@ -247,7 +228,6 @@ app.post('/api/update-invasion', (req, res) => {
   res.json({ message: "✅ invasion data updated (with server-side codes)" });
 });
 
-// 🧹 מחיקת הכל
 app.delete('/api/invasion', (req, res) => {
   landings = [];
   aliens = [];
@@ -256,14 +236,20 @@ app.delete('/api/invasion', (req, res) => {
   res.json({ message: "🗑️ All invasion data deleted" });
 });
 
-// 🧹 מחיקת טקילות ולוחמים
 app.delete('/api/takilas', (req, res) => {
   takilas = [];
-  fighters = []; // 💥 נוסיף גם ניקוי לוחמים
+  fighters = [];
   res.json({ message: "🗑️ All takilas and fighters deleted" });
 });
 
+// ✅ הגשת קבצי ה-Frontend (React build)
+app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+});
+
+// 🛡️ הפעלת השרת
 app.listen(PORT, () => {
   console.log(`🛡️ Server running on port ${PORT}`);
 });

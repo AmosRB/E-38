@@ -1,4 +1,4 @@
-// ✅ index.js מתוקן לגמרי
+// ✅ index.js משודרג - כולל קודי Takila ולוחמים
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -16,6 +16,21 @@ let takilas = [];
 let fighters = [];
 
 const alienCounters = {}; // landingId -> index
+const takilaCounters = { current: 0 }; // מונה קודי טקילה
+
+function getTakilaCode() {
+  const num = takilaCounters.current;
+  takilaCounters.current++;
+  const toCode = num => {
+    let code = '';
+    while (num >= 0) {
+      code = String.fromCharCode((num % 26) + 65) + code;
+      num = Math.floor(num / 26) - 1;
+    }
+    return code;
+  };
+  return `#${toCode(num)}`;
+}
 
 async function getRouteServer(from, to) {
   try {
@@ -42,15 +57,18 @@ app.get('/api/route', async (req, res) => {
       [parseFloat(fromLat), parseFloat(fromLng)],
       [parseFloat(toLat), parseFloat(toLng)]
     );
-    const encodedPolyline = require('polyline').encode(route.map(([lat, lng]) => [lat, lng]));
-    res.json({ polyline: encodedPolyline });
+    const encodedPolyline = polyline.encode(route.map(([lat, lng]) => [lat, lng]));
+
+    res.json({
+      routes: [
+        { geometry: encodedPolyline }
+      ]
+    });
   } catch (err) {
     console.error('❌ Failed to fetch route:', err.message);
     res.status(500).json({ error: 'Failed to fetch route' });
   }
 });
-
-
 
 async function createTakila(lat, lng) {
   const randomLat = lat + (Math.random() - 0.5) * 0.1;
@@ -65,9 +83,22 @@ async function createTakila(lat, lng) {
     direction: Math.random() * 360,
     lastUpdated: Date.now(),
     route,
-    positionIdx: 0
+    positionIdx: 0,
+    takilaCode: getTakilaCode()
   };
   takilas.push(takila);
+
+  // יצירת 4 לוחמים לכל טקילה
+  for (let i = 1; i <= 4; i++) {
+    fighters.push({
+      id: Date.now() + Math.random(),
+      lat,
+      lng,
+      lastUpdated: Date.now(),
+      takilaCode: takila.takilaCode,
+      fighterCode: `${takila.takilaCode}${i}`
+    });
+  }
 }
 
 function getNextLandingCode(existingCodes) {
@@ -89,7 +120,7 @@ function getNextLandingCode(existingCodes) {
   return toCode(toNumber(maxCode) + 1);
 }
 
-// 🔄 תזוזת חייזרים וטקילות כל שנייה
+// 🔁 תזוזת חייזרים וטקילות כל שנייה
 setInterval(() => {
   const cutoff = Date.now() - 10000;
   const activeLandingIds = [];
@@ -135,13 +166,13 @@ app.get('/api/invasion', (req, res) => {
   const takilaFeatures = takilas.map(t => ({
     type: "Feature",
     geometry: { type: "Point", coordinates: [t.lng, t.lat] },
-    properties: { id: t.id, type: "takila", lastUpdated: t.lastUpdated, direction: t.direction }
+    properties: { id: t.id, type: "takila", lastUpdated: t.lastUpdated, direction: t.direction, takilaCode: t.takilaCode }
   }));
 
   const fighterFeatures = fighters.map(f => ({
     type: "Feature",
     geometry: { type: "Point", coordinates: [f.lng, f.lat] },
-    properties: { id: f.id, type: "fighter", lastUpdated: f.lastUpdated }
+    properties: { id: f.id, type: "fighter", lastUpdated: f.lastUpdated, takilaCode: f.takilaCode, fighterCode: f.fighterCode }
   }));
 
   res.json({
@@ -237,5 +268,5 @@ app.delete('/api/takilas', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🛰️ Server running on port ${PORT}`);
+  console.log(`🛡️ Server running on port ${PORT}`);
 });

@@ -74,17 +74,31 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
             alienCode: f.properties.alienCode || null
           }));
 
-          const remoteTakilas = features
-          .filter(f => f.properties?.type === 'takila')
-          .map(f => ({
-            id: f.properties.id,
-            lat: f.geometry.coordinates[1],
-            lng: f.geometry.coordinates[0],
-            lastUpdated: f.properties.lastUpdated,
-            direction: f.properties.direction || Math.random() * 360,
-            takilaCode: f.properties.takilaCode || '',
-            showFightersOut: f.properties.showFightersOut || false // ✅ תיקון חשוב
-          }));
+  const remoteTakilas = features
+  .filter(f => f.properties?.type === 'takila')
+  .map(f => ({
+    id: f.properties.id,
+    lat: f.geometry.coordinates[1],
+    lng: f.geometry.coordinates[0],
+    lastUpdated: f.properties.lastUpdated,
+    direction: f.properties.direction || Math.random() * 360,
+    takilaCode: f.properties.takilaCode || '',
+    showFightersOut: f.properties.showFightersOut // כאן נשמור מהשרת אם קיים, אחרת ניקח מהקודם
+  }));
+
+setTakilas(prev => {
+  const byId = Object.fromEntries(prev.map(t => [t.id, t]));
+  remoteTakilas.forEach(remote => {
+    byId[remote.id] = {
+      ...byId[remote.id],
+      ...remote,
+      showFightersOut: remote.showFightersOut !== undefined ? remote.showFightersOut : (byId[remote.id]?.showFightersOut || false)
+    };
+  });
+  return Object.values(byId);
+});
+
+        
         
 
         const remoteFighters = features

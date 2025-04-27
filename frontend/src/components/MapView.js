@@ -4,14 +4,17 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // 🌟 יצירת אייקון מתוקן
+// 🌟 יצירת אייקון מתוקן
 const createEmojiIcon = (emoji, label = '', extraHtml = '') => L.divIcon({
   html: `<div style="display: flex; flex-direction: column; align-items: center; font-size: 24px; position: relative;">
-           <div>${emoji}</div>
-           ${label ? `<div style="font-size: 12px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>` : ''}
-           ${extraHtml}
-         </div>`,
+  ${extraHtml ? `<div style="margin-bottom: 0px;">${extraHtml}</div>` : ''}
+  <div>${emoji}</div>
+  ${label ? `<div style="font-size: 10px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>` : ''}
+</div>`,
+
   className: ''
 });
+
 
 function ClickHandler({ onMapClick }) {
   useMapEvents({
@@ -66,14 +69,21 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
 
         {/* 🚙 טקילות */}
         {takilas.map(t => (
-          <Marker
-            key={`takila-${t.id}`}
-            position={[t.lat, t.lng]}
-            icon={createEmojiIcon('🚙', t.takilaCode)}
-          >
-            <Popup>{`Takila ${t.takilaCode}`}</Popup>
-          </Marker>
-        ))}
+  <Marker
+    key={`takila-${t.id}`}
+    position={[t.lat, t.lng]}
+    icon={createEmojiIcon('🚙', t.takilaCode, t.showFightersOut ? `
+      <div style="color: white; background: purple; padding: 1px 4px; border-radius: 4px; font-size: 8px;">
+        WAITING
+      </div>
+    ` : '')}
+  >
+    <Popup>{`Takila ${t.takilaCode}`}</Popup>
+  </Marker>
+))}
+
+
+
 
         {/* 🧑‍⚖️ לוחמים */}
         {fighters.map(f => (

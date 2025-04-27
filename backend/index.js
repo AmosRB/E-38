@@ -154,11 +154,19 @@ app.get('/api/invasion', (req, res) => {
     properties: { id: alien.id, landingId: alien.landingId, type: "alien", alienCode: alien.alienCode }
   }));
 
-  const takilaFeatures = takilas.map(t => ({
-    type: "Feature",
-    geometry: { type: "Point", coordinates: [t.lng, t.lat] },
-    properties: { id: t.id, type: "takila", lastUpdated: t.lastUpdated, direction: t.direction, takilaCode: t.takilaCode }
-  }));
+ const takilaFeatures = takilas.map(t => ({
+  type: "Feature",
+  geometry: { type: "Point", coordinates: [t.lng, t.lat] },
+  properties: {
+    id: t.id,
+    type: "takila",
+    lastUpdated: t.lastUpdated,
+    direction: t.direction,
+    takilaCode: t.takilaCode,
+    showFightersOut: t.showFightersOut || false // ✅ תוספת חדשה
+  }
+}));
+
 
   const fighterFeatures = fighters.map(f => ({
     type: "Feature",

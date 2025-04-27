@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Navbar({ onActivateCreate, clearAll, landingCount, alienCount }) {
+export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (
     <div className="navbar" style={{
       height: '50px',
@@ -14,57 +14,50 @@ export default function Navbar({ onActivateCreate, clearAll, landingCount, alien
       fontSize: '16px',
       zIndex: 1000
     }}>
-      <div style={{ fontWeight: 'bold', fontSize: '18px' }}>
-        Invasion Monitor
+      
+      {/* כפתור CREATE LANDING בצד שמאל */}
+      <button
+        onClick={onActivateCreate}
+        style={{
+          background: '#2c2c2c',
+          color: '#b266ff',
+          border: '1px solid #b266ff',
+          padding: '6px 12px',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          letterSpacing: '1px',
+          boxShadow: '0 0 8px #b266ff',
+          transition: '0.3s'
+        }}
+      >
+        Create Landing ⚡
+      </button>
+
+      {/* קאונטר ממורכז */}
+      <div style={{ flex: 1, textAlign: 'center' }}>
+        🚙 {landingCount} | 🧍 {alienCount}
       </div>
 
-      <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-        <div>🛸 {landingCount} | 👽 {alienCount}</div>
+      {/* כפתור DELETE ALL בצד ימין */}
+      <button
+        onClick={onRequestClearAll}
+        className="nav-button"
+        style={{
+          background: 'red',
+          color: 'white',
+          border: 'none',
+          padding: '6px 12px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }}
+      >
+        Delete All 🗑️
+      </button>
 
-        <button
-          onClick={onActivateCreate}
-          className="nav-button"
-          style={{
-            background: 'white',
-            color: 'black',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          Create Landing ⚡
-        </button>
-
-        <button
-          onClick={async () => {
-            if (window.confirm('Are you sure you want to delete ALL landings and aliens?')) {
-              try {
-                await fetch('https://e-38.onrender.com/api/invasion', { method: 'DELETE' });
-                clearAll();
-                console.log('🧹 Deleted locally and remotely.');
-              } catch (err) {
-                console.error('❌ Failed to delete invasion data:', err.message);
-              }
-            }
-          }}
-          className="nav-button"
-          style={{
-            background: 'red',
-            color: 'white',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          Delete All 🗑️
-        </button>
-      </div>
-
-      {/* רספונסיביות ישירות בדף */}
+      {/* רספונסיביות */}
       <style>
         {`
           @media (max-width: 600px) {
@@ -80,6 +73,7 @@ export default function Navbar({ onActivateCreate, clearAll, landingCount, alien
           }
         `}
       </style>
+
     </div>
   );
 }

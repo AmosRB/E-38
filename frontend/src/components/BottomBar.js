@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function BottomBar({ onJump, onCallback, fighterCount, jumpCount }) {
+export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
   return (
     <div style={{
       position: 'fixed',
@@ -18,24 +18,33 @@ export default function BottomBar({ onJump, onCallback, fighterCount, jumpCount 
       zIndex: 1000,
       padding: '0 10px'
     }}>
+      
+      {/* כפתור JUMP מוקטן */}
       <button
         onClick={onJump}
         style={{
-          background: 'white',
-          color: 'black',
-          border: 'none',
-          padding: '6px 12px',
-          borderRadius: '5px',
+          background: '#2c2c2c',
+          color: '#00ff00',
+          border: '1px solid #00ff00',
+          padding: '6px 12px', // ✅ הקטנתי
+          borderRadius: '8px',
           cursor: 'pointer',
-          fontSize: '14px'
+          fontSize: '14px', // ✅ גם הקטנתי
+          fontWeight: 'bold',
+          letterSpacing: '1px',
+          boxShadow: '0 0 8px #00ff00',
+          transition: '0.3s'
         }}
       >
-        JUMP 🚀
+        JUMP ⚡
       </button>
 
-      <div>Fighters: {fighterCount}</div>
-      <div>Jumps: {jumpCount}</div>
+      {/* קאונטר עם האייקונים הנכונים */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        🚙 {takilas.length} | 🧍 {fighters.length}
+      </div>
 
+      {/* כפתור CALLBACK רגיל */}
       <button
         onClick={onCallback}
         style={{

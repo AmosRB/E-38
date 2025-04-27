@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export default function FighterMovementManager({ fighters, setFighters, aliens }) {
+export default function FighterMovementManager({ fighters, setFighters, aliens, setTakilas }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setFighters(prevFighters => {
@@ -9,9 +9,7 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
 
           let targetLat, targetLng;
 
-          // לפי הפאזה (phase) של הלוחם
           if (f.phase === "exit") {
-            // תזוזה במסלול קצר (200 מטר)
             if (f.route && f.positionIdx < f.route.length - 1) {
               const nextWaypoint = f.route[f.positionIdx + 1];
               targetLat = nextWaypoint[0];
@@ -23,33 +21,32 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
               const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
               const distanceKm = 6371 * c;
 
-              let speedKmPerSec = 2350 / 3600; // מהירות פתיחה
-
-              if (distanceKm < 0.02) {
-                return { ...f, lat: targetLat, lng: targetLng, positionIdx: f.positionIdx + 1, phase: "chase" };
-              }
-
+              const speedKmPerSec = (f.speed || 2350) / 3600;
               const moveRatio = speedKmPerSec / distanceKm;
+
               const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
               const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
 
+              // ✅ אם positionIdx בסוף המסלול ➔ מעבר ל-chase
+              if (f.positionIdx >= f.route.length - 2) {
+                return { ...f, lat: newLat, lng: newLng, phase: "chase" };
+              }
+
               return { ...f, lat: newLat, lng: newLng };
             } else {
-              // בטעות אין route ➔ עובר ישירות לרדיפה
+              // אין עוד נקודות במסלול ➔ עובר ל-chase
               return { ...f, phase: "chase" };
             }
           }
 
           if (f.phase === "chase") {
-            // רודף אחרי החייזר
             const targetAlien = aliens.find(a => a.id === f.targetAlienId);
-
             if (targetAlien) {
               const targetPos = targetAlien.route?.[targetAlien.positionIdx] || targetAlien.route?.[0];
               targetLat = targetPos[0];
               targetLng = targetPos[1];
             } else {
-              // חייזר כבר מת ➔ חזרה לטקילה
+              // החייזר מת ➔ מעבר ל-return
               return { ...f, phase: "return" };
             }
 
@@ -59,10 +56,9 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
             const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
             const distanceKm = 6371 * c;
 
-            let speedKmPerSec = 200 / 3600;
-            if (distanceKm < 0.1) speedKmPerSec = 20 / 3600;
-
+            const speedKmPerSec = (f.speed || 2350) / 3600;
             const moveRatio = speedKmPerSec / distanceKm;
+
             const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
             const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
 
@@ -70,7 +66,6 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
           }
 
           if (f.phase === "return") {
-            // חזרה לטקילה
             if (f.homeLat !== undefined && f.homeLng !== undefined) {
               targetLat = f.homeLat;
               targetLng = f.homeLng;
@@ -82,12 +77,12 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
               const distanceKm = 6371 * c;
 
               if (distanceKm < 0.05) {
-                // הגיע לטקילה ➔ למחוק
-                return null;
+                return null; // ✅ הגיע לטקילה ➔ להיעלם
               }
 
-              let speedKmPerSec = 200 / 3600;
+              const speedKmPerSec = (f.speed || 2350) / 3600;
               const moveRatio = speedKmPerSec / distanceKm;
+
               const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
               const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
 
@@ -98,13 +93,21 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
           return f;
         });
 
-        // מחיקה של לוחמים שסומנו null (חזרו לטקילה)
-        return updatedFighters.filter(f => f !== null);
+        // מסננים לוחמים שנמחקו (חזרו לטקילה)
+        const filteredFighters = updatedFighters.filter(f => f !== null);
+
+        // מעדכנים showFightersOut בטקילות
+        setTakilas(prevTakilas => prevTakilas.map(t => {
+          const hasFighters = filteredFighters.some(f => f.takilaCode === t.takilaCode);
+          return { ...t, showFightersOut: hasFighters };
+        }));
+
+        return filteredFighters;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [fighters, setFighters, aliens]);
+  }, [fighters, setFighters, aliens, setTakilas]);
 
   return null;
 }

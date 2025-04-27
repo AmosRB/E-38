@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-// ✅ פונקציה ליצירת מסלול פתיחה (200 מטר לכל כיוון)
+// ✅ פונקציה ליצירת מסלול פתיחה ללוחם
 function createFighterRoute(takila, mode) {
   const startLat = takila.lat;
   const startLng = takila.lng;
@@ -31,7 +31,7 @@ function createFighterRoute(takila, mode) {
     ];
   };
 
-  const firstMoveKm = 0.2; // תנועה ראשונה 200 מטר
+  const firstMoveKm = 0.2; // יציאה ראשונה 200 מטר
   const waypoint = movePoint(startLat, startLng, angle, firstMoveKm);
 
   return [
@@ -40,7 +40,9 @@ function createFighterRoute(takila, mode) {
   ];
 }
 
-// ✅ פונקציה ליצירת לוחם חדש
+// ✅ פונקציה ליצירת לוחם חדש עם מהירות אקראית
+// בתוך FighterManager.js
+
 function createFighter(takila, alien, mode) {
   return {
     id: Date.now() + Math.random(),
@@ -53,10 +55,12 @@ function createFighter(takila, alien, mode) {
     lastUpdated: Date.now(),
     homeLat: takila.lat,
     homeLng: takila.lng,
-    takilaCode: takila.takilaCode, // מזהה טקילה
-    phase: "exit" // שלב יציאה
+    takilaCode: takila.takilaCode,
+    phase: "exit",
+    speed: 1800 + Math.random() * 3000 // ✅ מהירות אקראית בין 1.8 קמ"ש ל-4.8 קמ"ש
   };
 }
+
 
 // ✅ קומפוננטת ניהול לוחמים
 export default function FighterManager({ takilas, aliens, fighters, setFighters, setTakilas }) {
@@ -75,19 +79,17 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
           const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
           const distance = 6371 * c;
 
-          return distance < 3.0; // טווח 3 ק"מ
+          return distance < 3.0; // טווח גילוי חייזר
         });
 
         if (nearbyAliens.length > 0) {
           const targetAlien = nearbyAliens[0];
 
-          // יצירת ארבעה לוחמים עם 2 שניות הפרש
           const modes = ['forward', 'right', 'left', 'back'];
-          modes.forEach((mode, idx) => {
-            setTimeout(() => {
-              setFighters(prev => [...prev, createFighter(t, targetAlien, mode)]);
-            }, idx * 2000); // הפרש של 2 שניות בין כל לוחם
-          });
+
+          // ✅ יוצרים 4 לוחמים מיידית
+          const newFighters = modes.map(mode => createFighter(t, targetAlien, mode));
+          setFighters(prev => [...prev, ...newFighters]);
 
           return { ...t, hasDispatchedFighters: true, showFightersOut: true };
         }

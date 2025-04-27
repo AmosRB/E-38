@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import MapView from './components/MapView';
 import AlienManager from './components/AlienManager';
@@ -12,11 +12,8 @@ import BattleManager from './components/BattleManager';
 import DefenseManager from './components/DefenseManager';
 import ExplosionManager from './components/ExplosionManager';
 import FighterMovementManager from './components/FighterMovementManager';
-
+import ConfirmDialog from './components/ConfirmDialog'; // ✅ חלון אישור מותאם
 import ShotManager from './components/ShotManager';
-
-
-
 
 const center = [31.5, 34.8];
 
@@ -39,11 +36,9 @@ export default function App() {
   const [createMode, setCreateMode] = useState(false);
   const [createTakilaMode, setCreateTakilaMode] = useState(false);
   const [cursorStyle, setCursorStyle] = useState("default");
-  const [fighterCount, setFighterCount] = useState(0);
-  const [jumpCount, setJumpCount] = useState(0);
   const [explosions, setExplosions] = useState([]);
-  
-
+  const [showConfirmDeleteTakilas, setShowConfirmDeleteTakilas] = useState(false);
+  const [showConfirmDeleteAll, setShowConfirmDeleteAll] = useState(false);
 
   const getNextAlienId = () => {
     const ids = aliens.map(a => a.id);
@@ -110,42 +105,40 @@ export default function App() {
     setCursorStyle("url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Parachute.svg/32px-Parachute.svg.png') 16 16, crosshair");
   };
 
-  const handleCallback = async () => {
-    if (window.confirm('Are you sure you want to delete all takilas?')) {
-      try {
-        await fetch('https://e-38.onrender.com/api/takilas', { method: 'DELETE' });
-        setTakilas([]);
-        setFighters([]);  // ✅ הוספה נכונה
-        setJumpCount(0);
-        setFighterCount(0);
-        console.log('🧹 Deleted takilas and fighters locally and remotely.');
-      } catch (err) {
-        console.error('❌ Failed to delete takilas:', err.message);
-      }
+  const handleCallback = () => {
+    setShowConfirmDeleteTakilas(true);
+  };
+
+  const handleConfirmDeleteTakilas = async () => {
+    setShowConfirmDeleteTakilas(false);
+    try {
+      await fetch('https://e-38.onrender.com/api/takilas', { method: 'DELETE' });
+      setTakilas([]);
+      setFighters([]);
+      console.log('🧹 Deleted takilas and fighters locally and remotely.');
+    } catch (err) {
+      console.error('❌ Failed to delete takilas:', err.message);
     }
   };
-  
-  
-  
-  
-  
+
+  const handleCancelDeleteTakilas = () => {
+    setShowConfirmDeleteTakilas(false);
+  };
 
   return (
-    <div style={{ cursor: cursorStyle }}>
-      <Navbar
-        landingCount={landings.length}
-        alienCount={aliens.length}
-        onActivateCreate={() => {
-          setCreateMode(true);
-          setCursorStyle("crosshair");
-        }}
-        clearAll={() => {
-          setLandings([]);
-          setAliens([]);
-          setTakilas([]);
-          setFighters([]);
-        }}
-      />
+<div style={{ cursor: cursorStyle }}>
+  <Navbar
+    landingCount={landings.length}
+    alienCount={aliens.length}
+    onActivateCreate={() => {
+      setCreateMode(true);
+      setCursorStyle("crosshair");
+    }}
+    onRequestClearAll={() => {
+      setShowConfirmDeleteAll(true);
+    }}
+  />
+
 
       {landings.length === 0 && aliens.length === 0 && (
         <div style={{
@@ -175,62 +168,84 @@ export default function App() {
         setFighters={setFighters}
       />
       <FighterManager
-  takilas={takilas}
-  aliens={aliens}
-  fighters={fighters}
-  setFighters={setFighters}
-  setTakilas={setTakilas}
-/>
-
-<DefenseManager
-  fighters={fighters}
-  aliens={aliens}
-  setFighters={setFighters}
-  setExplosions={setExplosions}
-/>
-
-<ExplosionManager
-  explosions={explosions}
-  setExplosions={setExplosions}
-/>
-
-<FighterMovementManager 
-  fighters={fighters} 
-  setFighters={setFighters}
-  aliens={aliens}
-/>
-
-<ShotManager
-  fighters={fighters}
-  aliens={aliens}
-  setAliens={setAliens}
-  setExplosions={setExplosions}
-  setFighters={setFighters} // ✅ הוספה חשובה
->
-  {(shots) => (
-    <MapView
-      center={center}
-      landings={landings}
-      aliens={aliens}
-      takilas={takilas}
-      fighters={fighters}
-      explosions={explosions}
-      shots={shots}
-      onMapClick={handleMapClick}
-    />
-  )}
-</ShotManager>
-
-
-
-
+        takilas={takilas}
+        aliens={aliens}
+        fighters={fighters}
+        setFighters={setFighters}
+        setTakilas={setTakilas}
+      />
+      <DefenseManager
+        fighters={fighters}
+        aliens={aliens}
+        setFighters={setFighters}
+        setExplosions={setExplosions}
+      />
+      <ExplosionManager
+        explosions={explosions}
+        setExplosions={setExplosions}
+      />
+      <FighterMovementManager
+        fighters={fighters}
+        setFighters={setFighters}
+        aliens={aliens}
+        setTakilas={setTakilas}
+      />
+      <ShotManager
+        fighters={fighters}
+        aliens={aliens}
+        setAliens={setAliens}
+        setExplosions={setExplosions}
+        setFighters={setFighters}
+      >
+        {(shots) => (
+          <MapView
+            center={center}
+            landings={landings}
+            aliens={aliens}
+            takilas={takilas}
+            fighters={fighters}
+            explosions={explosions}
+            shots={shots}
+            onMapClick={handleMapClick}
+          />
+        )}
+      </ShotManager>
 
       <BottomBar
         onJump={handleJump}
         onCallback={handleCallback}
-        fighterCount={fighterCount}
-        jumpCount={jumpCount}
+        fighters={fighters}
+        takilas={takilas}
       />
+
+      {showConfirmDeleteTakilas && (
+        <ConfirmDialog
+          message="האם אתה בטוח שברצונך למחוק את כל הטקילות?"
+          onConfirm={handleConfirmDeleteTakilas}
+          onCancel={handleCancelDeleteTakilas}
+        />
+      )}
+
+{showConfirmDeleteAll && (
+  <ConfirmDialog
+    message="האם אתה בטוח שברצונך למחוק את כל הנחיתות והחייזרים?"
+    onConfirm={async () => {
+      try {
+        await fetch('https://e-38.onrender.com/api/invasion', { method: 'DELETE' });
+        console.log('🧹 Deleted invasion data from server.');
+        setLandings([]);
+        setAliens([]);
+        setTakilas([]);
+        setFighters([]);
+      } catch (err) {
+        console.error('❌ Failed to delete invasion data:', err.message);
+      }
+      setShowConfirmDeleteAll(false);
+    }}
+    onCancel={() => setShowConfirmDeleteAll(false)}
+  />
+)}
+
     </div>
   );
 }

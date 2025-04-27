@@ -127,17 +127,21 @@ setInterval(() => {
     || !a.alienCode
   );
 
-  takilas.forEach(t => {
-    const now = Date.now();
-    const elapsedSeconds = (now - t.lastUpdated) / 1000;
-    t.lastUpdated = now;
+takilas.forEach(t => {
+  const now = Date.now();
+  const elapsedSeconds = (now - t.lastUpdated) / 1000;
+  t.lastUpdated = now;
 
-    if (t.route && t.positionIdx < t.route.length - 1) {
-      t.positionIdx++;
-      t.lat = t.route[t.positionIdx][0];
-      t.lng = t.route[t.positionIdx][1];
-    }
-  });
+  // ✅ אם לטקילה יש לוחמים בחוץ ➔ לא לזוז
+  if (t.showFightersOut) return;
+
+  if (t.route && t.positionIdx < t.route.length - 1) {
+    t.positionIdx++;
+    t.lat = t.route[t.positionIdx][0];
+    t.lng = t.route[t.positionIdx][1];
+  }
+});
+
 }, 1000);
 
 // 🔵 API לקבלת כל המידע
@@ -154,19 +158,11 @@ app.get('/api/invasion', (req, res) => {
     properties: { id: alien.id, landingId: alien.landingId, type: "alien", alienCode: alien.alienCode }
   }));
 
- const takilaFeatures = takilas.map(t => ({
-  type: "Feature",
-  geometry: { type: "Point", coordinates: [t.lng, t.lat] },
-  properties: {
-    id: t.id,
-    type: "takila",
-    lastUpdated: t.lastUpdated,
-    direction: t.direction,
-    takilaCode: t.takilaCode,
-    showFightersOut: t.showFightersOut || false // ✅ תוספת חדשה
-  }
-}));
-
+  const takilaFeatures = takilas.map(t => ({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [t.lng, t.lat] },
+    properties: { id: t.id, type: "takila", lastUpdated: t.lastUpdated, direction: t.direction, takilaCode: t.takilaCode }
+  }));
 
   const fighterFeatures = fighters.map(f => ({
     type: "Feature",

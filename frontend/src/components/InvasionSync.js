@@ -74,7 +74,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
             alienCode: f.properties.alienCode || null
           }));
 
-        const remoteTakilas = features
+          const remoteTakilas = features
           .filter(f => f.properties?.type === 'takila')
           .map(f => ({
             id: f.properties.id,
@@ -82,8 +82,10 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
             lng: f.geometry.coordinates[0],
             lastUpdated: f.properties.lastUpdated,
             direction: f.properties.direction || Math.random() * 360,
-            takilaCode: f.properties.takilaCode || '' // ✅ מתוקן להוסיף Takila Code
+            takilaCode: f.properties.takilaCode || '',
+            showFightersOut: f.properties.showFightersOut || false // ✅ תיקון חשוב
           }));
+        
 
         const remoteFighters = features
           .filter(f => f.properties?.type === 'fighter')

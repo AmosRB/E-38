@@ -4,69 +4,102 @@ export default function FighterMovementManager({ fighters, setFighters, aliens }
   useEffect(() => {
     const interval = setInterval(() => {
       setFighters(prevFighters => {
-        return prevFighters.map(f => {
+        const updatedFighters = prevFighters.map(f => {
           if (!f.moving) return f;
 
-          const targetAlien = aliens.find(a => a.id === f.targetAlienId);
-          if (!targetAlien) return f;
+          let targetLat, targetLng;
 
-          const targetPos = targetAlien.route?.[targetAlien.positionIdx] || targetAlien.route?.[0];
-          const [targetLat, targetLng] = targetPos;
+          // לפי הפאזה (phase) של הלוחם
+          if (f.phase === "exit") {
+            // תזוזה במסלול קצר (200 מטר)
+            if (f.route && f.positionIdx < f.route.length - 1) {
+              const nextWaypoint = f.route[f.positionIdx + 1];
+              targetLat = nextWaypoint[0];
+              targetLng = nextWaypoint[1];
 
-          const dLat = (targetLat - f.lat) * Math.PI / 180;
-          const dLng = (targetLng - f.lng) * Math.PI / 180;
-          const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(targetLat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-          const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
-          const distanceKm = 6371 * c;
+              const dLat = (targetLat - f.lat) * Math.PI / 180;
+              const dLng = (targetLng - f.lng) * Math.PI / 180;
+              const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(targetLat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+              const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+              const distanceKm = 6371 * c;
 
-          // ויסות מהירות דינמי:
-          let speedKmPerSec = 2350 / 3600; // מהירות פתיחה
+              let speedKmPerSec = 2350 / 3600; // מהירות פתיחה
 
-          if (distanceKm < 0.5) {
-            speedKmPerSec = 200 / 3600;
+              if (distanceKm < 0.02) {
+                return { ...f, lat: targetLat, lng: targetLng, positionIdx: f.positionIdx + 1, phase: "chase" };
+              }
+
+              const moveRatio = speedKmPerSec / distanceKm;
+              const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
+              const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
+
+              return { ...f, lat: newLat, lng: newLng };
+            } else {
+              // בטעות אין route ➔ עובר ישירות לרדיפה
+              return { ...f, phase: "chase" };
+            }
           }
 
-          if (distanceKm < 0.1) {
-            speedKmPerSec = 20 / 3600;
-          }
+          if (f.phase === "chase") {
+            // רודף אחרי החייזר
+            const targetAlien = aliens.find(a => a.id === f.targetAlienId);
 
-          if (f.route && f.positionIdx < f.route.length - 1) {
-            // יש עוד נקודה במסלול הראשוני ➔ ממשיכים לנוע אליה
-            const nextWaypoint = f.route[f.positionIdx + 1];
-            const waypointLat = nextWaypoint[0];
-            const waypointLng = nextWaypoint[1];
-
-            const dLatWp = (waypointLat - f.lat) * Math.PI / 180;
-            const dLngWp = (waypointLng - f.lng) * Math.PI / 180;
-            const aWp = Math.sin(dLatWp / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(waypointLat * Math.PI / 180) * Math.sin(dLngWp / 2) ** 2;
-            const cWp = 2 * Math.atan2(Math.sqrt(aWp), Math.sqrt(1 - aWp));
-            const distanceToWaypoint = 6371 * cWp;
-
-            if (distanceToWaypoint < 0.02) { // קטן מ-2 מטר
-              return {
-                ...f,
-                lat: waypointLat,
-                lng: waypointLng,
-                positionIdx: f.positionIdx + 1
-              };
+            if (targetAlien) {
+              const targetPos = targetAlien.route?.[targetAlien.positionIdx] || targetAlien.route?.[0];
+              targetLat = targetPos[0];
+              targetLng = targetPos[1];
+            } else {
+              // חייזר כבר מת ➔ חזרה לטקילה
+              return { ...f, phase: "return" };
             }
 
-            const moveRatio = speedKmPerSec / distanceToWaypoint;
+            const dLat = (targetLat - f.lat) * Math.PI / 180;
+            const dLng = (targetLng - f.lng) * Math.PI / 180;
+            const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(targetLat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+            const distanceKm = 6371 * c;
 
-            const newLat = f.lat + (waypointLat - f.lat) * Math.min(moveRatio, 1);
-            const newLng = f.lng + (waypointLng - f.lng) * Math.min(moveRatio, 1);
+            let speedKmPerSec = 200 / 3600;
+            if (distanceKm < 0.1) speedKmPerSec = 20 / 3600;
+
+            const moveRatio = speedKmPerSec / distanceKm;
+            const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
+            const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
 
             return { ...f, lat: newLat, lng: newLng };
           }
 
-          // סיים את המסלול הקצר? ➔ מתחיל לרדוף אחרי החייזר
-          const moveRatio = speedKmPerSec / distanceKm;
+          if (f.phase === "return") {
+            // חזרה לטקילה
+            if (f.homeLat !== undefined && f.homeLng !== undefined) {
+              targetLat = f.homeLat;
+              targetLng = f.homeLng;
 
-          const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
-          const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
+              const dLat = (targetLat - f.lat) * Math.PI / 180;
+              const dLng = (targetLng - f.lng) * Math.PI / 180;
+              const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(f.lat * Math.PI / 180) * Math.cos(targetLat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+              const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+              const distanceKm = 6371 * c;
 
-          return { ...f, lat: newLat, lng: newLng };
+              if (distanceKm < 0.05) {
+                // הגיע לטקילה ➔ למחוק
+                return null;
+              }
+
+              let speedKmPerSec = 200 / 3600;
+              const moveRatio = speedKmPerSec / distanceKm;
+              const newLat = f.lat + (targetLat - f.lat) * Math.min(moveRatio, 1);
+              const newLng = f.lng + (targetLng - f.lng) * Math.min(moveRatio, 1);
+
+              return { ...f, lat: newLat, lng: newLng };
+            }
+          }
+
+          return f;
         });
+
+        // מחיקה של לוחמים שסומנו null (חזרו לטקילה)
+        return updatedFighters.filter(f => f !== null);
       });
     }, 1000);
 

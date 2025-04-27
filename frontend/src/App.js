@@ -115,14 +115,17 @@ export default function App() {
       try {
         await fetch('https://e-38.onrender.com/api/takilas', { method: 'DELETE' });
         setTakilas([]);
+        setFighters([]);  // ✅ הוספה נכונה
         setJumpCount(0);
         setFighterCount(0);
-        console.log('🧹 Deleted takilas locally and remotely.');
+        console.log('🧹 Deleted takilas and fighters locally and remotely.');
       } catch (err) {
         console.error('❌ Failed to delete takilas:', err.message);
       }
     }
   };
+  
+  
   
   
   
@@ -197,7 +200,13 @@ export default function App() {
   aliens={aliens}
 />
 
-<ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions}>
+<ShotManager
+  fighters={fighters}
+  aliens={aliens}
+  setAliens={setAliens}
+  setExplosions={setExplosions}
+  setFighters={setFighters} // ✅ הוספה חשובה
+>
   {(shots) => (
     <MapView
       center={center}
@@ -211,6 +220,8 @@ export default function App() {
     />
   )}
 </ShotManager>
+
+
 
 
 

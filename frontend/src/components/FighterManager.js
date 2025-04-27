@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-// ✅ פונקציה ליצירת מסלול עם 6 נקודות
+// ✅ פונקציה ליצירת מסלול פתיחה (200 מטר לכל כיוון)
 function createFighterRoute(takila, mode) {
   const startLat = takila.lat;
   const startLng = takila.lng;
@@ -26,13 +26,12 @@ function createFighterRoute(takila, mode) {
     const dx = distanceKm * Math.cos(angle);
     const dy = distanceKm * Math.sin(angle);
     return [
-      lat + dy / 111, // שינוי ברוחב
-      lng + dx / (111 * Math.cos(lat * Math.PI / 180)) // שינוי באורך
+      lat + dy / 111,
+      lng + dx / (111 * Math.cos(lat * Math.PI / 180))
     ];
   };
 
-  const firstMoveKm = 0.2; // תנועה ראשונה של 200 מטר
-
+  const firstMoveKm = 0.2; // תנועה ראשונה 200 מטר
   const waypoint = movePoint(startLat, startLng, angle, firstMoveKm);
 
   return [
@@ -41,14 +40,7 @@ function createFighterRoute(takila, mode) {
   ];
 }
 
-
-
-
-
-
-
-
-// ✅ פונקציה ליצירת לוחם
+// ✅ פונקציה ליצירת לוחם חדש
 function createFighter(takila, alien, mode) {
   return {
     id: Date.now() + Math.random(),
@@ -58,10 +50,13 @@ function createFighter(takila, alien, mode) {
     positionIdx: 0,
     targetAlienId: alien.id,
     moving: true,
-    lastUpdated: Date.now()
+    lastUpdated: Date.now(),
+    homeLat: takila.lat,
+    homeLng: takila.lng,
+    takilaCode: takila.takilaCode, // מזהה טקילה
+    phase: "exit" // שלב יציאה
   };
 }
-
 
 // ✅ קומפוננטת ניהול לוחמים
 export default function FighterManager({ takilas, aliens, fighters, setFighters, setTakilas }) {
@@ -76,28 +71,23 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
 
           const dLat = (lat - t.lat) * Math.PI / 180;
           const dLng = (lng - t.lng) * Math.PI / 180;
-          const aVal = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(t.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(t.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
           const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
           const distance = 6371 * c;
 
-          return distance < 3.0; // טווח גילוי של 3 ק"מ
+          return distance < 3.0; // טווח 3 ק"מ
         });
 
         if (nearbyAliens.length > 0) {
           const targetAlien = nearbyAliens[0];
 
-          const newFighters = [
-            createFighter(t, targetAlien, 'forward'),
-            createFighter(t, targetAlien, 'right'),
-            createFighter(t, targetAlien, 'left'),
-            createFighter(t, targetAlien, 'back')
-          ];
-
-          setFighters(prev => [...prev, ...newFighters]);
-
-          setTimeout(() => {
-            setTakilas(prev => prev.map(tk => tk.id === t.id ? { ...tk, showFightersOut: false } : tk));
-          }, 5000);
+          // יצירת ארבעה לוחמים עם 2 שניות הפרש
+          const modes = ['forward', 'right', 'left', 'back'];
+          modes.forEach((mode, idx) => {
+            setTimeout(() => {
+              setFighters(prev => [...prev, createFighter(t, targetAlien, mode)]);
+            }, idx * 2000); // הפרש של 2 שניות בין כל לוחם
+          });
 
           return { ...t, hasDispatchedFighters: true, showFightersOut: true };
         }

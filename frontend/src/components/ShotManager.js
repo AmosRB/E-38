@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import BattleManager from './BattleManager';
 
-export default function ShotManager({ fighters, aliens, setAliens, setExplosions, children }) {
+export default function ShotManager({ fighters, aliens, setAliens, setExplosions, setFighters, children }) {
+
+
   const [shots, setShots] = useState([]);
 
   useEffect(() => {
@@ -13,13 +15,15 @@ export default function ShotManager({ fighters, aliens, setAliens, setExplosions
 
   return (
     <>
-      <BattleManager
-        fighters={fighters}
-        aliens={aliens}
-        setAliens={setAliens}
-        setShots={setShots}
-        setExplosions={setExplosions} // ✅ להוסיף כאן
-      />
+<BattleManager
+  fighters={fighters}
+  aliens={aliens}
+  setAliens={setAliens}
+  setFighters={setFighters} // ✅ להוסיף
+  setShots={setShots}
+  setExplosions={setExplosions}
+/>
+
       {children(shots)}
     </>
   );

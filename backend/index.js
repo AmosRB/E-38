@@ -88,18 +88,9 @@ async function createTakila(lat, lng) {
   };
   takilas.push(takila);
 
-  // יצירת 4 לוחמים לכל טקילה
-  for (let i = 1; i <= 4; i++) {
-    fighters.push({
-      id: Date.now() + Math.random(),
-      lat,
-      lng,
-      lastUpdated: Date.now(),
-      takilaCode: takila.takilaCode,
-      fighterCode: `${takila.takilaCode}${i}`
-    });
-  }
+  // ❌ אין יותר יצירת לוחמים כאן
 }
+
 
 function getNextLandingCode(existingCodes) {
   const toNumber = code => code.split('').reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 65 + 1), 0);
@@ -261,11 +252,13 @@ app.delete('/api/invasion', (req, res) => {
   res.json({ message: "🗑️ All invasion data deleted" });
 });
 
-// 🧹 מחיקת טקילות בלבד
+// 🧹 מחיקת טקילות ולוחמים
 app.delete('/api/takilas', (req, res) => {
   takilas = [];
-  res.json({ message: "🗑️ All takilas deleted" });
+  fighters = []; // 💥 נוסיף גם ניקוי לוחמים
+  res.json({ message: "🗑️ All takilas and fighters deleted" });
 });
+
 
 app.listen(PORT, () => {
   console.log(`🛡️ Server running on port ${PORT}`);

@@ -6,6 +6,11 @@ export default function TakilaManager({ takilas, setTakilas }) {
     const interval = setInterval(async () => {
       setTakilas(prevTakilas => {
         const updatedTakilas = prevTakilas.map(t => {
+          if (t.showFightersOut) {
+            // ❗ יש לוחמים בחוץ ➔ לא להזיז את הטקילה
+            return t;
+          }
+
           if (!t.route || t.route.length === 0) return t;
 
           const nextIdx = (t.positionIdx ?? 0) + 1;
@@ -22,9 +27,11 @@ export default function TakilaManager({ takilas, setTakilas }) {
 
           return t;
         });
+
         return updatedTakilas;
       });
 
+      // עכשיו נבדוק גם אם טקילה סיימה את המסלול ➔ יוצרים לה מסלול חדש
       for (const t of takilas) {
         if (!t.route || t.positionIdx >= t.route.length - 1) {
           let success = false;

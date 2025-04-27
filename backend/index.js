@@ -242,14 +242,17 @@ app.delete('/api/takilas', (req, res) => {
   res.json({ message: "🗑️ All takilas and fighters deleted" });
 });
 
-// ✅ הגשת קבצי ה-Frontend (React build)
-app.use(express.static(path.join(__dirname, 'frontend', 'build')));
+// ✅ הגשת קבצי ה-Frontend (React build) - מתוקן
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
 // 🛡️ הפעלת השרת
 app.listen(PORT, () => {
   console.log(`🛡️ Server running on port ${PORT}`);
 });
+

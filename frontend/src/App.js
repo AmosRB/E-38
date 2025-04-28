@@ -232,16 +232,37 @@ export default function App() {
     onConfirm={async () => {
       try {
         await fetch('https://e-38.onrender.com/api/invasion', { method: 'DELETE' });
-        console.log('🧹 Deleted invasion data from server.');
-        setLandings([]);
-        setAliens([]);
-        setTakilas([]);
-        setFighters([]);
+        console.log('🧹 Deleted landings and aliens from server.');
+        await new Promise(r => setTimeout(r, 500));
+        const res = await fetch('https://e-38.onrender.com/api/invasion');
+        const data = await res.json();
+        const features = data.features || [];
+    
+        const newLandings = features.filter(f => f.properties?.type === 'landing');
+        const newAliens = features.filter(f => f.properties?.type === 'alien');
+    
+        setLandings(newLandings.map(l => ({
+          id: l.properties.id,
+          lat: l.geometry.coordinates[1],
+          lng: l.geometry.coordinates[0],
+          name: l.properties.locationName || 'Unknown',
+          landingCode: l.properties.landingCode || '?'
+        })));
+    
+        setAliens(newAliens.map(a => ({
+          id: a.properties.id,
+          route: [[a.geometry.coordinates[1], a.geometry.coordinates[0]], [a.geometry.coordinates[1], a.geometry.coordinates[0]]],
+          positionIdx: 0,
+          landingId: a.properties.landingId,
+          alienCode: a.properties.alienCode || '?'
+        })));
+    
       } catch (err) {
-        console.error('❌ Failed to delete invasion data:', err.message);
+        console.error('❌ Failed to delete landings and aliens:', err.message);
       }
       setShowConfirmDeleteAll(false);
     }}
+    
     onCancel={() => setShowConfirmDeleteAll(false)}
   />
 )}

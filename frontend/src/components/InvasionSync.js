@@ -55,23 +55,23 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           return Object.values(byId);
         });
 
-        // 🛠️ מיזוג aliens בזהירות - אל להחזיר חייזרים שנמחקו
+        // 🛠️ מיזוג aliens - לא מוחקים חייזרים קיימים שלא הופיעו בשרת
         setAliens(prev => {
           const prevIds = new Set(prev.map(a => a.id));
           const remoteIds = new Set(remoteAliens.map(a => a.id));
 
-          // רק חייזרים שמופיעים ברימוט או קיימים
-          const merged = prev.filter(a => remoteIds.has(a.id)).map(a => {
+          const updatedAliens = prev.map(a => {
             const remote = remoteAliens.find(r => r.id === a.id);
-            return remote ? {
-              ...a,
-              landingId: remote.landingId,
-              alienCode: remote.alienCode || a.alienCode,
-              route: a.route // נשמרת
-            } : a;
+            if (remote) {
+              return {
+                ...a,
+                landingId: remote.landingId,
+                alienCode: remote.alienCode || a.alienCode,
+              };
+            }
+            return a; // ❗ אם אין עדכון מהשרת — נשאר קיים
           });
 
-          // חייזרים חדשים
           const newAliens = remoteAliens.filter(r => !prevIds.has(r.id)).map(r => ({
             id: r.id,
             route: [r.singlePoint, r.singlePoint],
@@ -80,7 +80,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
             alienCode: r.alienCode
           }));
 
-          return [...merged, ...newAliens];
+          return [...updatedAliens, ...newAliens];
         });
 
         setTakilas(remoteTakilas);

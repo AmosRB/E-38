@@ -69,7 +69,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
                 alienCode: remote.alienCode || a.alienCode,
               };
             }
-            return a; // ❗ אם אין עדכון מהשרת — נשאר קיים
+            return a;
           });
 
           const newAliens = remoteAliens.filter(r => !prevIds.has(r.id)).map(r => ({
@@ -83,8 +83,39 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           return [...updatedAliens, ...newAliens];
         });
 
+        // 🛠️ מיזוג fighters - לא מוחקים לוחמים קיימים שלא הופיעו בשרת
+        setFighters(prev => {
+          const prevIds = new Set(prev.map(f => f.id));
+          const remoteIds = new Set(remoteFighters.map(f => f.id));
+
+          const updatedFighters = prev.map(f => {
+            const remote = remoteFighters.find(r => r.id === f.id);
+            if (remote) {
+              return {
+                ...f,
+                lat: remote.lat,
+                lng: remote.lng,
+                lastUpdated: remote.lastUpdated || f.lastUpdated,
+                takilaCode: remote.takilaCode || f.takilaCode,
+                fighterCode: remote.fighterCode || f.fighterCode
+              };
+            }
+            return f;
+          });
+
+          const newFighters = remoteFighters.filter(r => !prevIds.has(r.id)).map(r => ({
+            id: r.id,
+            lat: r.lat,
+            lng: r.lng,
+            lastUpdated: r.lastUpdated,
+            takilaCode: r.takilaCode,
+            fighterCode: r.fighterCode
+          }));
+
+          return [...updatedFighters, ...newFighters];
+        });
+
         setTakilas(remoteTakilas);
-        setFighters(remoteFighters);
 
       } catch (err) {
         console.error("❌ Failed to sync invasion:", err.message);

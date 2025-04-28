@@ -39,14 +39,14 @@ function createFighter(takila, targetAlien, mode) {
     id: Date.now() + Math.random(),
     lat: startLat,
     lng: startLng,
-    route: [[startLat, startLng], waypoint],
+    route: [[startLat, startLng], waypoint], // ✅ תמיד שני נקודות!
     positionIdx: 0,
     targetAlienId: targetAlien.id,
     moving: true,
     lastUpdated: Date.now(),
     homeLat: startLat,
     homeLng: startLng,
-    takilaCode: takila.takilaCode,
+    takilaCode: takila.takilaCode || '',
     phase: "exit",
     speed: 1800 + Math.random() * 3000
   };
@@ -62,7 +62,7 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
         if (t.hasDispatchedFighters) return t;
 
         const nearbyAliens = aliens.filter(a => {
-          if (!a.route || a.route.length === 0) return false;
+          if (!a.route || a.route.length === 0 || !Array.isArray(a.route[0])) return false;
           const [lat, lng] = a.route[a.positionIdx] || a.route[0];
 
           const dLat = (lat - t.lat) * Math.PI / 180;

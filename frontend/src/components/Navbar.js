@@ -37,7 +37,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
 
       {/* קאונטר ממורכז */}
       <div style={{ flex: 1, textAlign: 'center' }}>
-        🚙 {landingCount} | 🧍 {alienCount}
+        🛸 {landingCount} | 👽 {alienCount}
       </div>
 
       {/* כפתור DELETE ALL בצד ימין */}

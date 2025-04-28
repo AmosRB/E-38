@@ -43,24 +43,6 @@ async function getRouteServer(from, to) {
   }
 }
 
-app.get('/api/route', async (req, res) => {
-  const { fromLat, fromLng, toLat, toLng } = req.query;
-  if (!fromLat || !fromLng || !toLat || !toLng) {
-    return res.status(400).json({ error: 'Missing coordinates' });
-  }
-  try {
-    const route = await getRouteServer(
-      [parseFloat(fromLat), parseFloat(fromLng)],
-      [parseFloat(toLat), parseFloat(toLng)]
-    );
-    const encodedPolyline = polyline.encode(route.map(([lat, lng]) => [lat, lng]));
-    res.json({ routes: [{ geometry: encodedPolyline }] });
-  } catch (err) {
-    console.error('❌ Failed to fetch route:', err.message);
-    res.status(500).json({ error: 'Failed to fetch route' });
-  }
-});
-
 async function createTakila(lat, lng) {
   const randomLat = lat + (Math.random() - 0.5) * 0.1;
   const randomLng = lng + (Math.random() - 0.5) * 0.1;
@@ -76,6 +58,25 @@ async function createTakila(lat, lng) {
     route,
     positionIdx: 0,
     takilaCode: getTakilaCode()
+  });
+}
+
+// 📌 פונקציה חדשה: יצירת חייזר
+async function createAlien(lat, lng, landingId, alienCode) {
+  const angle = Math.random() * 360;
+  const to = [
+    lat + 0.05 * Math.cos(angle * Math.PI / 180),
+    lng + 0.05 * Math.sin(angle * Math.PI / 180)
+  ];
+  const route = await getRouteServer([lat, lng], to);
+
+  aliens.push({
+    id: Date.now() + Math.random(),
+    landingId,
+    alienCode,
+    route,
+    positionIdx: 0,
+    lastUpdated: Date.now()
   });
 }
 
@@ -108,18 +109,12 @@ setInterval(() => {
     return active;
   });
 
-  aliens = aliens.filter(a =>
-    (activeLandingIds.includes(a.landingId) && a.lastUpdated > cutoff)
-    || !a.alienCode
-  );
+  aliens = aliens.filter(a => (activeLandingIds.includes(a.landingId) && a.lastUpdated > cutoff));
 
   takilas.forEach(t => {
     const now = Date.now();
-    const elapsedSeconds = (now - t.lastUpdated) / 1000;
     t.lastUpdated = now;
-
-    if (t.showFightersOut) return; // טקילה עם לוחמים מחוץ — לא לזוז
-
+    if (t.showFightersOut) return;
     if (t.route && t.positionIdx < t.route.length - 1) {
       t.positionIdx++;
       t.lat = t.route[t.positionIdx][0];
@@ -127,6 +122,24 @@ setInterval(() => {
     }
   });
 }, 1000);
+
+app.get('/api/route', async (req, res) => {
+  const { fromLat, fromLng, toLat, toLng } = req.query;
+  if (!fromLat || !fromLng || !toLat || !toLng) {
+    return res.status(400).json({ error: 'Missing coordinates' });
+  }
+  try {
+    const route = await getRouteServer(
+      [parseFloat(fromLat), parseFloat(fromLng)],
+      [parseFloat(toLat), parseFloat(toLng)]
+    );
+    const encodedPolyline = polyline.encode(route.map(([lat, lng]) => [lat, lng]));
+    res.json({ routes: [{ geometry: encodedPolyline }] });
+  } catch (err) {
+    console.error('❌ Failed to fetch route:', err.message);
+    res.status(500).json({ error: 'Failed to fetch route' });
+  }
+});
 
 app.get('/api/invasion', (req, res) => {
   const landingFeatures = landings.map(landing => ({
@@ -137,7 +150,7 @@ app.get('/api/invasion', (req, res) => {
 
   const alienFeatures = aliens.map(alien => ({
     type: "Feature",
-    geometry: { type: "Point", coordinates: alien.position },
+    geometry: { type: "Point", coordinates: [alien.route[alien.positionIdx][1], alien.route[alien.positionIdx][0]] },
     properties: { id: alien.id, landingId: alien.landingId, type: "alien", alienCode: alien.alienCode }
   }));
 
@@ -168,12 +181,21 @@ app.post('/api/create-takila', async (req, res) => {
   res.json({ message: "🚙 Takila created successfully." });
 });
 
+// 📌 נתיב חדש: יצירת חייזר
+app.post('/api/create-alien', async (req, res) => {
+  const { lat, lng, landingId, alienCode } = req.body;
+  if (typeof lat !== 'number' || typeof lng !== 'number') {
+    return res.status(400).json({ error: 'Invalid coordinates' });
+  }
+  await createAlien(lat, lng, landingId, alienCode);
+  res.json({ message: "👽 Alien created successfully." });
+});
+
 app.post('/api/update-invasion', (req, res) => {
   const { features } = req.body;
   const now = Date.now();
 
   const newLandings = features.filter(f => f.properties?.type === 'landing');
-  const newAliens = features.filter(f => f.properties?.type === 'alien');
 
   newLandings.forEach(l => {
     const id = l.properties.id;
@@ -199,33 +221,7 @@ app.post('/api/update-invasion', (req, res) => {
     }
   });
 
-  newAliens.forEach(a => {
-    const pos = [a.geometry.coordinates[0], a.geometry.coordinates[1]];
-    const id = a.properties.id;
-    const landingId = a.properties.landingId ?? 0;
-    const existing = aliens.find(existing => existing.id === id);
-    if (existing) {
-      existing.position = pos;
-      existing.lastUpdated = now;
-    } else {
-      const landing = landings.find(l => l.id === landingId);
-      const code = landing?.landingCode || "?";
-      const index = alienCounters[landingId] || 1;
-      const alienCode = `${code}${index}`;
-      alienCounters[landingId] = index + 1;
-
-      aliens.push({
-        id,
-        landingId,
-        alienCode,
-        position: pos,
-        positionIdx: 0,
-        lastUpdated: now
-      });
-    }
-  });
-
-  res.json({ message: "✅ invasion data updated (with server-side codes)" });
+  res.json({ message: "✅ invasion data updated" });
 });
 
 app.delete('/api/invasion', (req, res) => {
@@ -242,16 +238,12 @@ app.delete('/api/takilas', (req, res) => {
   res.json({ message: "🗑️ All takilas and fighters deleted" });
 });
 
-// ✅ הגשת קבצי ה-Frontend (React build) - מתוקן
-
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
-// 🛡️ הפעלת השרת
 app.listen(PORT, () => {
   console.log(`🛡️ Server running on port ${PORT}`);
 });
-

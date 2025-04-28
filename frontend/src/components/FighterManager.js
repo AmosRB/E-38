@@ -3,37 +3,102 @@ import axios from 'axios';
 
 const API_BASE = "https://e-38.onrender.com";
 
+function createFighterRoute(takila, mode) {
+  const startLat = takila.lat;
+  const startLng = takila.lng;
+
+  let angle = 0;
+  switch (mode) {
+    case 'right':
+      angle = Math.PI / 2;
+      break;
+    case 'left':
+      angle = -Math.PI / 2;
+      break;
+    case 'back':
+      angle = Math.PI;
+      break;
+    case 'forward':
+    default:
+      angle = 0;
+      break;
+  }
+
+  const movePoint = (lat, lng, angle, distanceKm) => {
+    const dx = distanceKm * Math.cos(angle);
+    const dy = distanceKm * Math.sin(angle);
+    return [
+      lat + dy / 111,
+      lng + dx / (111 * Math.cos(lat * Math.PI / 180))
+    ];
+  };
+
+  const firstMoveKm = 0.2;
+  const waypoint = movePoint(startLat, startLng, angle, firstMoveKm);
+
+  return [
+    [startLat, startLng],
+    waypoint
+  ];
+}
+
+function createFighter(takila, alien, mode) {
+  return {
+    id: Date.now() + Math.random(),
+    lat: takila.lat,
+    lng: takila.lng,
+    route: createFighterRoute(takila, mode),
+    positionIdx: 0,
+    targetAlienId: alien.id,
+    moving: true,
+    lastUpdated: Date.now(),
+    homeLat: takila.lat,
+    homeLng: takila.lng,
+    takilaCode: takila.takilaCode,
+    phase: "exit",
+    speed: 1800 + Math.random() * 3000
+  };
+}
+
 export default function FighterManager({ takilas, aliens, fighters, setFighters, setTakilas }) {
   useEffect(() => {
     const interval = setInterval(async () => {
-      const now = Date.now();
-      const updatedFighters = [...fighters];
-      let createdNewFighters = false;
+      let createdFighters = false;
+      let newFighters = [];
 
       const updatedTakilas = takilas.map(t => {
-        if (t.showFightersOut && t.lastUpdated && now - t.lastUpdated > 5000 && !fighters.some(f => f.takilaCode === t.takilaCode)) {
-          // טקילה מוכנה להוציא לוחמים ואין לה לוחמים פעילים
-          for (let i = 0; i < 4; i++) {
-            updatedFighters.push({
-              id: `${t.id}_${i}_${now}`,
-              lat: t.lat + (Math.random() - 0.5) * 0.001,
-              lng: t.lng + (Math.random() - 0.5) * 0.001,
-              lastUpdated: now,
-              takilaCode: t.takilaCode,
-              fighterCode: `F${i + 1}`
-            });
-          }
-          createdNewFighters = true;
-          return { ...t, lastUpdated: now };
+        if (t.hasDispatchedFighters) return t;
+
+        const nearbyAliens = aliens.filter(a => {
+          if (!a.route || a.route.length === 0) return false;
+          const [lat, lng] = a.route[a.positionIdx] || a.route[0];
+
+          const dLat = (lat - t.lat) * Math.PI / 180;
+          const dLng = (lng - t.lng) * Math.PI / 180;
+          const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(t.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+          const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+          const distance = 6371 * c;
+
+          return distance < 3.0;
+        });
+
+        if (nearbyAliens.length > 0) {
+          const targetAlien = nearbyAliens[0];
+          const modes = ['forward', 'right', 'left', 'back'];
+          const created = modes.map(mode => createFighter(t, targetAlien, mode));
+          newFighters = [...newFighters, ...created];
+          createdFighters = true;
+          return { ...t, hasDispatchedFighters: true, showFightersOut: true };
         }
+
         return t;
       });
 
-      if (createdNewFighters) {
-        setFighters(updatedFighters);
+      if (createdFighters) {
+        setFighters(prev => [...prev, ...newFighters]);
         setTakilas(updatedTakilas);
 
-        // 🛰️ שליחת עדכון לשרת עם הלוחמים החדשים
+        // ✅ שליחת עדכון לשרת אחרי יצירת לוחמים
         const features = [
           ...updatedTakilas.map(t => ({
             type: "Feature",
@@ -47,7 +112,7 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
               showFightersOut: t.showFightersOut
             }
           })),
-          ...updatedFighters.map(f => ({
+          ...[...fighters, ...newFighters].map(f => ({
             type: "Feature",
             geometry: { type: "Point", coordinates: [f.lng, f.lat] },
             properties: {
@@ -71,7 +136,7 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [takilas, fighters, setFighters, setTakilas]);
+  }, [takilas, aliens, fighters, setFighters, setTakilas]);
 
   return null;
 }

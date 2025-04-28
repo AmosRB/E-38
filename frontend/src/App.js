@@ -136,6 +136,17 @@ export default function App() {
     setTakilas={setTakilas}
     setFighters={setFighters}
   />
+
+      <BattleManager
+  fighters={fighters}
+  aliens={aliens}
+  landings={landings}
+  setAliens={setAliens}
+  setFighters={setFighters}
+  setShots={setShots}
+  setExplosions={setExplosions}
+/>
+    
   <FighterManager takilas={takilas} aliens={aliens} fighters={fighters} setFighters={setFighters} setTakilas={setTakilas} />
   <DefenseManager fighters={fighters} aliens={aliens} setFighters={setFighters} setExplosions={setExplosions} />
   <ExplosionManager explosions={explosions} setExplosions={setExplosions} />

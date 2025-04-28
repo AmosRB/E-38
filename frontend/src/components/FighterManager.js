@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
-import axios from 'axios';
 
-const API_BASE = "https://e-38.onrender.com";
-
-function createFighter(takila, targetAlien, mode) {
+// ✅ פונקציה ליצירת מסלול פתיחה ללוחם
+function createFighterRoute(takila, mode) {
   const startLat = takila.lat;
   const startLng = takila.lng;
 
@@ -33,36 +31,46 @@ function createFighter(takila, targetAlien, mode) {
     ];
   };
 
-  const waypoint = movePoint(startLat, startLng, angle, 0.2);
+  const firstMoveKm = 0.2; // יציאה ראשונה 200 מטר
+  const waypoint = movePoint(startLat, startLng, angle, firstMoveKm);
 
+  return [
+    [startLat, startLng],
+    waypoint
+  ];
+}
+
+// ✅ פונקציה ליצירת לוחם חדש עם מהירות אקראית
+// בתוך FighterManager.js
+
+function createFighter(takila, alien, mode) {
   return {
     id: Date.now() + Math.random(),
-    lat: startLat,
-    lng: startLng,
-    route: [[startLat, startLng], waypoint], // ✅ תמיד שני נקודות!
+    lat: takila.lat,
+    lng: takila.lng,
+    route: createFighterRoute(takila, mode),
     positionIdx: 0,
-    targetAlienId: targetAlien.id,
+    targetAlienId: alien.id,
     moving: true,
     lastUpdated: Date.now(),
-    homeLat: startLat,
-    homeLng: startLng,
-    takilaCode: takila.takilaCode || '',
+    homeLat: takila.lat,
+    homeLng: takila.lng,
+    takilaCode: takila.takilaCode,
     phase: "exit",
-    speed: 1800 + Math.random() * 3000
+    speed: 1800 + Math.random() * 3000 // ✅ מהירות אקראית בין 1.8 קמ"ש ל-4.8 קמ"ש
   };
 }
 
+
+// ✅ קומפוננטת ניהול לוחמים
 export default function FighterManager({ takilas, aliens, fighters, setFighters, setTakilas }) {
   useEffect(() => {
-    const interval = setInterval(async () => {
-      let createdFighters = false;
-      let newFighters = [];
-
-      const updatedTakilas = takilas.map(t => {
+    const interval = setInterval(() => {
+      setTakilas(prevTakilas => prevTakilas.map(t => {
         if (t.hasDispatchedFighters) return t;
 
         const nearbyAliens = aliens.filter(a => {
-          if (!a.route || a.route.length === 0 || !Array.isArray(a.route[0])) return false;
+          if (!a.route || a.route.length === 0) return false;
           const [lat, lng] = a.route[a.positionIdx] || a.route[0];
 
           const dLat = (lat - t.lat) * Math.PI / 180;
@@ -71,64 +79,27 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
           const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
           const distance = 6371 * c;
 
-          return distance < 3.0;
+          return distance < 3.0; // טווח גילוי חייזר
         });
 
         if (nearbyAliens.length > 0) {
           const targetAlien = nearbyAliens[0];
+
           const modes = ['forward', 'right', 'left', 'back'];
-          const created = modes.map(mode => createFighter(t, targetAlien, mode));
-          newFighters = [...newFighters, ...created];
-          createdFighters = true;
+
+          // ✅ יוצרים 4 לוחמים מיידית
+          const newFighters = modes.map(mode => createFighter(t, targetAlien, mode));
+          setFighters(prev => [...prev, ...newFighters]);
+
           return { ...t, hasDispatchedFighters: true, showFightersOut: true };
         }
 
         return t;
-      });
-
-      if (createdFighters) {
-        setFighters(prev => [...prev, ...newFighters]);
-        setTakilas(updatedTakilas);
-
-        // ✅ שליחת עדכון לשרת אחרי יצירת לוחמים
-        const features = [
-          ...updatedTakilas.map(t => ({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [t.lng, t.lat] },
-            properties: {
-              type: "takila",
-              id: t.id,
-              lastUpdated: t.lastUpdated,
-              direction: t.direction,
-              takilaCode: t.takilaCode,
-              showFightersOut: t.showFightersOut
-            }
-          })),
-          ...newFighters.map(f => ({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [f.lng, f.lat] },
-            properties: {
-              type: "fighter",
-              id: f.id,
-              lastUpdated: f.lastUpdated,
-              takilaCode: f.takilaCode,
-              fighterCode: f.fighterCode
-            }
-          }))
-        ];
-
-        try {
-          await axios.post(`${API_BASE}/api/update-invasion`, { type: "FeatureCollection", features });
-          console.log('📡 Server updated after creating fighters');
-        } catch (err) {
-          console.error('❌ Failed to update server after creating fighters:', err.message);
-        }
-      }
-
+      }));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [takilas, aliens, setFighters, setTakilas]);
+  }, [takilas, aliens, fighters, setFighters, setTakilas]);
 
   return null;
 }

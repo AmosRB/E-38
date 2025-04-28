@@ -32,7 +32,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
           transition: '0.3s'
         }}
       >
-        Create Landing ⚡
+        Landing ⚡
       </button>
 
       {/* קאונטר ממורכז */}

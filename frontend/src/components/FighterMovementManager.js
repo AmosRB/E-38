@@ -5,7 +5,7 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
     const interval = setInterval(() => {
       setFighters(prevFighters => prevFighters.map(f => {
         if (!f.moving || !Array.isArray(f.route) || f.route.length === 0 || f.positionIdx === undefined) {
-          return f; // אין מסלול תקין או אין תנועה
+          return f;
         }
 
         const currentPos = f.route[f.positionIdx];
@@ -16,14 +16,13 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
             const targetAlien = aliens.find(a => a.id === f.targetAlienId);
 
             if (!targetAlien || !Array.isArray(targetAlien.route) || targetAlien.route.length === 0) {
-              // חייזר לא קיים או אין לו נתיב ➔ הלוחם עובר ל-return
+              // אין חייזר או route לא תקין ➔ חזרה לטקילה
               return { ...f, phase: "return", moving: true, route: [[f.lat, f.lng], [f.homeLat, f.homeLng]], positionIdx: 0 };
             }
 
             const targetPos = targetAlien.route[targetAlien.positionIdx] || targetAlien.route[0];
 
-            if (!Array.isArray(targetPos)) {
-              // נקודת יעד לא תקינה ➔ חזרה
+            if (!Array.isArray(targetPos) || targetPos.length !== 2) {
               return { ...f, phase: "return", moving: true, route: [[f.lat, f.lng], [f.homeLat, f.homeLng]], positionIdx: 0 };
             }
 
@@ -43,10 +42,10 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
             );
 
             if (distanceHome < 0.0005) {
-              return null; // קרוב מספיק לטקילה ➔ מוחקים לוחם
+              return null; // מחיקה כשהלוחם מגיע לבית
             }
 
-            return f; // ממשיך בתנועה לבית
+            return f; // ממשיך לחזור לטקילה
           }
 
           return f;

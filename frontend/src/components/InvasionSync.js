@@ -3,114 +3,48 @@ import axios from 'axios';
 
 const API_BASE = "https://e-38.onrender.com";
 
-export default function InvasionSync({ landings, aliens, setLandings, setAliens, setTakilas, setFighters }) {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (landings.length === 0 && aliens.length === 0) return;
-
-      const geoJSON = {
-        type: "FeatureCollection",
-        features: [
-          ...landings.map(l => ({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [l.lng, l.lat],
-            },
-            properties: {
-              type: "landing",
-              id: l.id,
-              locationName: l.name,
-              landingCode: l.landingCode || null
-            }
-          })),
-          ...aliens.map(a => ({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [
-                a.route[a.positionIdx][1],
-                a.route[a.positionIdx][0]
-              ]
-            },
-            properties: {
-              type: "alien",
-              id: a.id,
-              landingId: a.landingId,
-              alienCode: a.alienCode || null
-            }
-          }))
-        ]
-      };
-
-      axios.post(`${API_BASE}/api/update-invasion`, geoJSON);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [landings, aliens]);
-
+export default function InvasionSync({ landings, aliens, setLandings, setAliens, setTakilas, setFighters, isDeleting }) {
   useEffect(() => {
     const interval = setInterval(async () => {
+      if (isDeleting) return;
+
       try {
         const res = await axios.get(`${API_BASE}/api/invasion`);
-        const features = res.data.features;
+        const features = res.data.features || [];
 
-        const remoteLandings = features
-          .filter(f => f.properties?.type === 'landing')
-          .map(f => ({
-            id: f.properties.id,
-            lat: f.geometry.coordinates[1],
-            lng: f.geometry.coordinates[0],
-            name: f.properties.locationName || 'Unknown',
-            landingCode: f.properties.landingCode || '?'
-          }));
+        const remoteLandings = features.filter(f => f.properties?.type === 'landing').map(f => ({
+          id: f.properties.id,
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+          name: f.properties.locationName || 'Unknown',
+          landingCode: f.properties.landingCode || '?'
+        }));
 
-        const remoteAliens = features
-          .filter(f => f.properties?.type === 'alien')
-          .map(f => ({
-            id: f.properties.id,
-            singlePoint: [f.geometry.coordinates[1], f.geometry.coordinates[0]],
-            landingId: f.properties.landingId,
-            alienCode: f.properties.alienCode || null
-          }));
+        const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
+          id: f.properties.id,
+          singlePoint: [f.geometry.coordinates[1], f.geometry.coordinates[0]],
+          landingId: f.properties.landingId,
+          alienCode: f.properties.alienCode || '?'
+        }));
 
-  const remoteTakilas = features
-  .filter(f => f.properties?.type === 'takila')
-  .map(f => ({
-    id: f.properties.id,
-    lat: f.geometry.coordinates[1],
-    lng: f.geometry.coordinates[0],
-    lastUpdated: f.properties.lastUpdated,
-    direction: f.properties.direction || Math.random() * 360,
-    takilaCode: f.properties.takilaCode || '',
-    showFightersOut: f.properties.showFightersOut // כאן נשמור מהשרת אם קיים, אחרת ניקח מהקודם
-  }));
+        const remoteTakilas = features.filter(f => f.properties?.type === 'takila').map(f => ({
+          id: f.properties.id,
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+          lastUpdated: f.properties.lastUpdated,
+          direction: f.properties.direction || Math.random() * 360,
+          takilaCode: f.properties.takilaCode || '',
+          showFightersOut: f.properties.showFightersOut || false
+        }));
 
-setTakilas(prev => {
-  const byId = Object.fromEntries(prev.map(t => [t.id, t]));
-  remoteTakilas.forEach(remote => {
-    byId[remote.id] = {
-      ...byId[remote.id],
-      ...remote,
-      showFightersOut: remote.showFightersOut !== undefined ? remote.showFightersOut : (byId[remote.id]?.showFightersOut || false)
-    };
-  });
-  return Object.values(byId);
-});
-
-        
-        
-
-        const remoteFighters = features
-          .filter(f => f.properties?.type === 'fighter')
-          .map(f => ({
-            id: f.properties.id,
-            lat: f.geometry.coordinates[1],
-            lng: f.geometry.coordinates[0],
-            lastUpdated: f.properties.lastUpdated,
-            takilaCode: f.properties.takilaCode || '', // ✅ מתוקן להוסיף Takila Code
-            fighterCode: f.properties.fighterCode || '' // ✅ מתוקן להוסיף Fighter Code
-          }));
+        const remoteFighters = features.filter(f => f.properties?.type === 'fighter').map(f => ({
+          id: f.properties.id,
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+          lastUpdated: f.properties.lastUpdated,
+          takilaCode: f.properties.takilaCode || '',
+          fighterCode: f.properties.fighterCode || ''
+        }));
 
         // 🛠️ מיזוג landings
         setLandings(prev => {
@@ -121,57 +55,44 @@ setTakilas(prev => {
           return Object.values(byId);
         });
 
-        // 🛠️ מיזוג aliens בזהירות — לא למחוק route קיים
+        // 🛠️ מיזוג aliens בזהירות - אל להחזיר חייזרים שנמחקו
         setAliens(prev => {
-          const byId = Object.fromEntries(prev.map(a => [a.id, a]));
-          remoteAliens.forEach(remote => {
-            if (byId[remote.id]) {
-              byId[remote.id] = {
-                ...byId[remote.id],
-                landingId: remote.landingId,
-                alienCode: remote.alienCode || byId[remote.id].alienCode,
-              };
-            } else {
-              byId[remote.id] = {
-                id: remote.id,
-                route: [remote.singlePoint, remote.singlePoint],
-                positionIdx: 0,
-                landingId: remote.landingId,
-                alienCode: remote.alienCode
-              };
-            }
+          const prevIds = new Set(prev.map(a => a.id));
+          const remoteIds = new Set(remoteAliens.map(a => a.id));
+
+          // רק חייזרים שמופיעים ברימוט או קיימים
+          const merged = prev.filter(a => remoteIds.has(a.id)).map(a => {
+            const remote = remoteAliens.find(r => r.id === a.id);
+            return remote ? {
+              ...a,
+              landingId: remote.landingId,
+              alienCode: remote.alienCode || a.alienCode,
+              route: a.route // נשמרת
+            } : a;
           });
-          return Object.values(byId);
+
+          // חייזרים חדשים
+          const newAliens = remoteAliens.filter(r => !prevIds.has(r.id)).map(r => ({
+            id: r.id,
+            route: [r.singlePoint, r.singlePoint],
+            positionIdx: 0,
+            landingId: r.landingId,
+            alienCode: r.alienCode
+          }));
+
+          return [...merged, ...newAliens];
         });
 
-        // 🛠️ מיזוג takilas
-        setTakilas(prev => {
-          const byId = Object.fromEntries(prev.map(t => [t.id, t]));
-          remoteTakilas.forEach(remote => {
-            if (byId[remote.id]) {
-              remote.showFightersOut = byId[remote.id].showFightersOut || false;
-            }
-            byId[remote.id] = { ...byId[remote.id], ...remote };
-          });
-          return Object.values(byId);
-        });
-
-        // 🛠️ מיזוג fighters
-        setFighters(prev => {
-          const byId = Object.fromEntries(prev.map(f => [f.id, f]));
-          remoteFighters.forEach(remote => {
-            byId[remote.id] = { ...byId[remote.id], ...remote };
-          });
-          return Object.values(byId);
-        });
+        setTakilas(remoteTakilas);
+        setFighters(remoteFighters);
 
       } catch (err) {
-        console.error("❌ Failed to load invasion data:", err.message);
+        console.error("❌ Failed to sync invasion:", err.message);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [setLandings, setAliens, setTakilas, setFighters]);
+  }, [landings, aliens, isDeleting, setLandings, setAliens, setTakilas, setFighters]);
 
   return null;
 }

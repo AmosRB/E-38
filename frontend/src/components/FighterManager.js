@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_BASE = "https://e-38.onrender.com";
 
-function createFighterRoute(takila, mode) {
+function createFighter(takila, targetAlien, mode) {
   const startLat = takila.lat;
   const startLng = takila.lng;
 
@@ -33,27 +33,19 @@ function createFighterRoute(takila, mode) {
     ];
   };
 
-  const firstMoveKm = 0.2;
-  const waypoint = movePoint(startLat, startLng, angle, firstMoveKm);
+  const waypoint = movePoint(startLat, startLng, angle, 0.2);
 
-  return [
-    [startLat, startLng],
-    waypoint
-  ];
-}
-
-function createFighter(takila, alien, mode) {
   return {
     id: Date.now() + Math.random(),
-    lat: takila.lat,
-    lng: takila.lng,
-    route: createFighterRoute(takila, mode),
+    lat: startLat,
+    lng: startLng,
+    route: [[startLat, startLng], waypoint],
     positionIdx: 0,
-    targetAlienId: alien.id,
+    targetAlienId: targetAlien.id,
     moving: true,
     lastUpdated: Date.now(),
-    homeLat: takila.lat,
-    homeLng: takila.lng,
+    homeLat: startLat,
+    homeLng: startLng,
     takilaCode: takila.takilaCode,
     phase: "exit",
     speed: 1800 + Math.random() * 3000
@@ -112,7 +104,7 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
               showFightersOut: t.showFightersOut
             }
           })),
-          ...[...fighters, ...newFighters].map(f => ({
+          ...newFighters.map(f => ({
             type: "Feature",
             geometry: { type: "Point", coordinates: [f.lng, f.lat] },
             properties: {
@@ -136,7 +128,7 @@ export default function FighterManager({ takilas, aliens, fighters, setFighters,
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [takilas, aliens, fighters, setFighters, setTakilas]);
+  }, [takilas, aliens, setFighters, setTakilas]);
 
   return null;
 }

@@ -21,11 +21,13 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
         }));
 
         const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
-          id: f.properties.id,
-          singlePoint: [f.geometry.coordinates[1], f.geometry.coordinates[0]],
-          landingId: f.properties.landingId,
-          alienCode: f.properties.alienCode || '?'
-        }));
+  id: f.properties.id,
+  route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
+  positionIdx: 0,
+  landingId: f.properties.landingId,
+  alienCode: f.properties.alienCode || '?'
+}));
+
 
         const remoteTakilas = features.filter(f => f.properties?.type === 'takila').map(f => ({
           id: f.properties.id,

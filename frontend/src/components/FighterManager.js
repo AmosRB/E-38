@@ -57,7 +57,7 @@ function createFighter(takila, alien, mode) {
     homeLng: takila.lng,
     takilaCode: takila.takilaCode,
     phase: "exit",
-    speed: 1800 + Math.random() * 3000 // ✅ מהירות אקראית בין 1.8 קמ"ש ל-4.8 קמ"ש
+    speed: 1000 + Math.random() * 1800 // ✅ מהירות אקראית בין 1 קמ"ש ל-2.8 קמ"ש
   };
 }
 

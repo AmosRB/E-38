@@ -1,32 +1,67 @@
-/* ✅ App.css מתוקן להתאמה מלאה למסך */
-
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-  background-color: #111;
-  color: white;
-}
-
-.App {
-  display: flex;
-  flex-direction: column;
+/* סגנון בסיס לפריסת מסך */
+.app-layout {
+  display: grid;
+  grid-template-areas:
+    "navbar navbar"
+    "sidepanel map"
+    "bottombar bottombar";
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: auto 1fr auto;
   height: 100vh;
-  width: 100%;
   overflow: hidden;
 }
 
-.map-container {
-  flex: 1;
-  height: 100%;
-  width: 100%;
+.navbar {
+  grid-area: navbar;
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
+.sidepanel {
+  grid-area: sidepanel;
+  background: #111;
+  color: white;
+  padding: 10px;
+  overflow-y: auto;
 }
 
-/* ניתן להוסיף התאמות עיצוב נוספות לכפתורים/שכבות לפי צורך */
+.map {
+  grid-area: map;
+}
+
+.bottombar {
+  grid-area: bottombar;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: black;
+  color: white;
+  height: 50px;
+  font-size: 16px;
+  padding: 0 10px;
+}
+
+/* רספונסיביות לטלפונים */
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-areas:
+      "navbar"
+      "map"
+      "bottombar";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .sidepanel {
+    display: none;
+  }
+
+  .bottombar {
+    flex-direction: column;
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .bottombar button {
+    width: 80%;
+    margin: 5px 0;
+  }
+}

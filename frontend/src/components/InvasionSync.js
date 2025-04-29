@@ -1,4 +1,4 @@
-// ✅ InvasionSync.js סופי ומאובטח - מתאים לשרת הנוכחי שלך
+// ✅ InvasionSync.js סופי - כולל locationName נכון לנחיתות
 
 import { useEffect } from 'react';
 import axios from 'axios';
@@ -18,7 +18,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           id: f.properties.id,
           lat: f.geometry.coordinates[1],
           lng: f.geometry.coordinates[0],
-          name: f.properties.locationName || 'Unknown',
+          locationName: f.properties.locationName || 'Unknown',
           landingCode: f.properties.landingCode || '?'
         }));
 

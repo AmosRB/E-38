@@ -1,3 +1,5 @@
+// ✅ index.js מלא ומעודכן - ניהול טקילות, חייזרים ולוחמים
+
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -79,23 +81,43 @@ async function createAlien(lat, lng, landingId, alienCode) {
   });
 }
 
-function getNextLandingCode(existingCodes) {
-  const toNumber = code => code.split('').reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 65 + 1), 0);
-  const toCode = num => {
-    let code = '';
-    while (num > 0) {
-      num--;
-      code = String.fromCharCode((num % 26) + 65) + code;
-      num = Math.floor(num / 26);
-    }
-    return code;
+function createSingleFighter(takila, targetAlien, mode) {
+  const startLat = takila.lat;
+  const startLng = takila.lng;
+  let angle = 0;
+
+  switch (mode) {
+    case 'right': angle = Math.PI / 2; break;
+    case 'left': angle = -Math.PI / 2; break;
+    case 'back': angle = Math.PI; break;
+    case 'forward': default: angle = 0; break;
+  }
+
+  const movePoint = (lat, lng, angle, distanceKm) => {
+    const dx = distanceKm * Math.cos(angle);
+    const dy = distanceKm * Math.sin(angle);
+    return [
+      lat + dy / 111,
+      lng + dx / (111 * Math.cos(lat * Math.PI / 180))
+    ];
   };
 
-  const validCodes = existingCodes.filter(c => /^[A-Z]+$/.test(c));
-  if (validCodes.length === 0) return 'A';
+  const waypoint = movePoint(startLat, startLng, angle, 0.2);
 
-  const maxCode = validCodes.reduce((a, b) => toNumber(a) > toNumber(b) ? a : b);
-  return toCode(toNumber(maxCode) + 1);
+  return {
+    id: Date.now() + Math.random(),
+    lat: startLat,
+    lng: startLng,
+    homeLat: startLat,
+    homeLng: startLng,
+    route: [[startLat, startLng], waypoint],
+    positionIdx: 0,
+    takilaCode: takila.takilaCode,
+    targetAlienId: targetAlien.id,
+    fighterCode: `F${Math.floor(Math.random() * 1000)}`,
+    phase: "exit",
+    lastUpdated: Date.now()
+  };
 }
 
 // ✅ ניהול תנועה מלא בשרת
@@ -134,6 +156,43 @@ setInterval(async () => {
     }
   }
 
+  for (let i = fighters.length - 1; i >= 0; i--) {
+    const f = fighters[i];
+
+    if (!f.route || f.positionIdx === undefined) continue;
+
+    if (f.phase === "exit" && f.positionIdx < f.route.length - 1) {
+      f.positionIdx++;
+      f.lat = f.route[f.positionIdx][0];
+      f.lng = f.route[f.positionIdx][1];
+    } else if (f.phase === "exit") {
+      const target = aliens.find(a => a.id === f.targetAlienId);
+      if (target && target.route) {
+        f.route = [[f.lat, f.lng], target.route[target.positionIdx] || target.route[0]];
+        f.positionIdx = 0;
+        f.phase = "chase";
+      } else {
+        f.route = [[f.lat, f.lng], [f.homeLat, f.homeLng]];
+        f.positionIdx = 0;
+        f.phase = "return";
+      }
+    } else if (f.phase === "chase" && f.positionIdx < f.route.length - 1) {
+      f.positionIdx++;
+      f.lat = f.route[f.positionIdx][0];
+      f.lng = f.route[f.positionIdx][1];
+    } else if (f.phase === "chase") {
+      f.route = [[f.lat, f.lng], [f.homeLat, f.homeLng]];
+      f.positionIdx = 0;
+      f.phase = "return";
+    } else if (f.phase === "return" && f.positionIdx < f.route.length - 1) {
+      f.positionIdx++;
+      f.lat = f.route[f.positionIdx][0];
+      f.lng = f.route[f.positionIdx][1];
+    } else if (f.phase === "return") {
+      fighters.splice(i, 1);
+    }
+  }
+
 }, 1000);
 
 // ✅ API Routes
@@ -147,33 +206,24 @@ app.get('/api/invasion', (req, res) => {
   const alienFeatures = aliens.map(a => ({
     type: "Feature",
     geometry: { type: "Point", coordinates: [a.route[a.positionIdx][1], a.route[a.positionIdx][0]] },
-    properties: {
-      id: a.id,
-      landingId: a.landingId,
-      type: "alien",
-      alienCode: a.alienCode,
-      route: a.route,
-      positionIdx: a.positionIdx
-    }
+    properties: { id: a.id, landingId: a.landingId, type: "alien", alienCode: a.alienCode, route: a.route, positionIdx: a.positionIdx }
   }));
 
   const takilaFeatures = takilas.map(t => ({
     type: "Feature",
     geometry: { type: "Point", coordinates: [t.lng, t.lat] },
-    properties: {
-      id: t.id,
-      type: "takila",
-      lastUpdated: t.lastUpdated,
-      direction: t.direction,
-      takilaCode: t.takilaCode,
-      route: t.route,
-      positionIdx: t.positionIdx
-    }
+    properties: { id: t.id, type: "takila", takilaCode: t.takilaCode, route: t.route, positionIdx: t.positionIdx }
+  }));
+
+  const fighterFeatures = fighters.map(f => ({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [f.lng, f.lat] },
+    properties: { id: f.id, type: "fighter", fighterCode: f.fighterCode, takilaCode: f.takilaCode, phase: f.phase, lastUpdated: f.lastUpdated }
   }));
 
   res.json({
     type: "FeatureCollection",
-    features: [...landingFeatures, ...alienFeatures, ...takilaFeatures]
+    features: [...landingFeatures, ...alienFeatures, ...takilaFeatures, ...fighterFeatures]
   });
 });
 
@@ -195,36 +245,21 @@ app.post('/api/create-alien', async (req, res) => {
   res.json({ message: "👽 Alien created successfully." });
 });
 
-app.post('/api/update-invasion', (req, res) => {
-  const { features } = req.body;
-  const now = Date.now();
-  const newLandings = features.filter(f => f.properties?.type === 'landing');
+app.post('/api/create-fighters', async (req, res) => {
+  const { takilaId, targetAlienId } = req.body;
+  const takila = takilas.find(t => t.id === takilaId);
+  const targetAlien = aliens.find(a => a.id === targetAlienId);
 
-  newLandings.forEach(l => {
-    const id = l.properties.id;
-    const existing = landings.find(existing => existing.id === id);
-    if (existing) {
-      existing.lat = l.geometry.coordinates[1];
-      existing.lng = l.geometry.coordinates[0];
-      existing.locationName = l.properties.locationName || "Unknown";
-      existing.lastUpdated = now;
-    } else {
-      const existingCodes = landings.map(l => l.landingCode);
-      const landingCode = getNextLandingCode(existingCodes);
-      landings.push({
-        id,
-        lat: l.geometry.coordinates[1],
-        lng: l.geometry.coordinates[0],
-        locationName: l.properties.locationName || "Unknown",
-        createdAt: new Date().toISOString(),
-        landingCode,
-        lastUpdated: now
-      });
-      alienCounters[id] = 1;
-    }
-  });
+  if (!takila || !targetAlien) {
+    return res.status(400).json({ error: "Invalid takila or alien" });
+  }
 
-  res.json({ message: "✅ invasion data updated" });
+  const modes = ['forward', 'right', 'left', 'back'];
+  const newFighters = modes.map(mode => createSingleFighter(takila, targetAlien, mode));
+  fighters.push(...newFighters);
+  takila.showFightersOut = true;
+
+  res.json({ message: "🧍 Fighters created successfully." });
 });
 
 app.use(express.static(path.join(__dirname, '../frontend/build')));

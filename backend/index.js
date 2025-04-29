@@ -209,15 +209,20 @@ app.get('/api/invasion', (req, res) => {
       geometry: { type: 'Point', coordinates: [a.route[a.positionIdx][1], a.route[a.positionIdx][0]] },
       properties: { id: a.id, type: 'alien', landingId: a.landingId, alienCode: a.alienCode }
     })),
-    ...takilas.map(t => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [t.lng, t.lat] },
-      properties: {
-        id: t.id, type: 'takila', takilaCode: t.takilaCode,
-        showFightersOut: t.showFightersOut,
-        status: t.showFightersOut ? 'WAITING' : ''
-      }
-    })),
+...takilas.map(t => ({
+  type: 'Feature',
+  geometry: { type: 'Point', coordinates: [t.lng, t.lat] },
+  properties: {
+    id: t.id,
+    type: 'takila',
+    takilaCode: t.takilaCode,
+    showFightersOut: t.showFightersOut,
+    route: t.route,             
+    positionIdx: t.positionIdx,
+    status: t.showFightersOut ? 'WAITING' : ''
+  }
+}))
+,
     ...fighters.map(f => ({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [f.lng, f.lat] },

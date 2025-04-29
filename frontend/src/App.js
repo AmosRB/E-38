@@ -164,13 +164,14 @@ export default function App() {
         />
       )}
 
-      {showConfirmDeleteAll && (
-        <ConfirmDialog
-          message=" "
-          onConfirm={handleConfirmDeleteAll}
-          onCancel={() => setShowConfirmDeleteAll(false)}
-        />
-      )}
+  {showConfirmDeleteAll && (
+  <ConfirmDialog
+    message="Are you sure you want to delete all landings?"
+    onConfirm={handleConfirmDeleteAll}
+    onCancel={() => setShowConfirmDeleteAll(false)}
+  />
+)}
+
 
       <InvasionSync
         landings={landings}

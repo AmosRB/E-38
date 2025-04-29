@@ -4,20 +4,7 @@ import React from 'react';
 
 export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
   return (
-    <div className="bottom-bar" style={{
-      display: 'flex',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      background: 'black',
-      color: 'white',
-      height: '50px',
-      fontSize: '16px',
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      zIndex: 1000
-    }}>
+<div className="bottombar">
 
       {/* CALLBACK כפתור */}
       <button onClick={onCallback} style={{

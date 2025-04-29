@@ -1,78 +1,31 @@
+// ✅ Navbar.js מתוקן - כפתור DELETE ALL בשמאל, מחובר, ו-Create בימין
+
 import React from 'react';
+import './Navbar.css';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (
-    <div className="navbar" style={{
-      height: '50px',
-      backgroundColor: 'black',
-      color: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 10px',
-      fontFamily: 'sans-serif',
-      fontSize: '16px',
-      zIndex: 1000
-    }}>
-      
-      {/* כפתור CREATE LANDING בצד שמאל */}
-      <button
-        onClick={onActivateCreate}
-        style={{
-          background: '#2c2c2c',
-          color: '#b266ff',
-          border: '1px solid #b266ff',
-          padding: '6px 12px',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          letterSpacing: '1px',
-          boxShadow: '0 0 8px #b266ff',
-          transition: '0.3s'
-        }}
-      >
-        Landing ⚡
-      </button>
+    <div className="navbar" style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5em 1em', background: 'black', color: 'white', alignItems: 'center' }}>
 
-      {/* קאונטר ממורכז */}
-      <div style={{ flex: 1, textAlign: 'center' }}>
-        🛸 {landingCount} | 👽 {alienCount}
+      {/* צד שמאל - DELETE ALL */}
+      <div>
+        <button onClick={onRequestClearAll} style={{ background: 'red', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+          ❌ DELETE ALL
+        </button>
       </div>
 
-      {/* כפתור DELETE ALL בצד ימין */}
-      <button
-        onClick={onRequestClearAll}
-        className="nav-button"
-        style={{
-          background: 'red',
-          color: 'white',
-          border: 'none',
-          padding: '6px 12px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontSize: '14px'
-        }}
-      >
-        Delete All 🗑️
-      </button>
+      {/* טקסט מרכזי */}
+      <div>
+        <span style={{ marginRight: '10px' }}>🛸 {landingCount} Landings</span>
+        <span>👽 {alienCount} Aliens</span>
+      </div>
 
-      {/* רספונסיביות */}
-      <style>
-        {`
-          @media (max-width: 600px) {
-            .navbar {
-              font-size: 14px;
-              padding: 0 5px;
-              height: 45px;
-            }
-            .nav-button {
-              font-size: 12px;
-              padding: 4px 8px;
-            }
-          }
-        `}
-      </style>
+      {/* צד ימין - Create Landing */}
+      <div>
+        <button onClick={onActivateCreate} style={{ background: 'limegreen', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+          ⚡ CREATE LANDING
+        </button>
+      </div>
 
     </div>
   );

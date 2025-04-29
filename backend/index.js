@@ -69,6 +69,40 @@ setInterval(() => {
   const now = Date.now();
   shots = [];
   explosions = [];
+  
+  // ✅ הוספת תנועה לטקילות
+  for (const t of takilas) {
+    if (t.showFightersOut) continue;
+    if (t.route && t.positionIdx < t.route.length - 1) {
+      t.positionIdx++;
+      t.lat = t.route[t.positionIdx][0];
+      t.lng = t.route[t.positionIdx][1];
+    } else {
+      const randLat = t.lat + (Math.random() - 0.5) * 0.1;
+      const randLng = t.lng + (Math.random() - 0.5) * 0.1;
+      const newRoute = await getRouteServer([t.lat, t.lng], [randLat, randLng]);
+      t.route = newRoute;
+      t.positionIdx = 0;
+    }
+  }
+
+  // ✅ הוספת תנועה לחייזרים
+  for (const a of aliens) {
+    if (a.route && a.positionIdx < a.route.length - 1) {
+      a.positionIdx++;
+    } else {
+      const from = a.route[a.route.length - 1];
+      const angle = Math.random() * 360;
+      const to = [
+        from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
+        from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
+      ];
+      const newRoute = await getRouteServer(from, to);
+      a.route = newRoute;
+      a.positionIdx = 0;
+    }
+  }
+
   const alienHitMap = {};
 
   for (const f of fighters) {

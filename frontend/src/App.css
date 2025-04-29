@@ -15,14 +15,6 @@
   grid-area: navbar;
 }
 
-.sidepanel {
-  grid-area: sidepanel;
-  background: #111;
-  color: white;
-  padding: 10px;
-  overflow-y: auto;
-}
-
 .map {
   grid-area: map;
 }
@@ -50,10 +42,6 @@
     grid-template-rows: auto 1fr auto;
   }
 
-  .sidepanel {
-    display: none;
-  }
-
   .bottombar {
     flex-direction: column;
     height: auto;
@@ -65,3 +53,12 @@
     margin: 5px 0;
   }
 }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+

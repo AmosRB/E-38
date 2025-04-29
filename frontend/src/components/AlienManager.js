@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import getRoute from '../utils/getRoute';
 
 export default function AlienManager({ aliens, setAliens }) {
   useEffect(() => {

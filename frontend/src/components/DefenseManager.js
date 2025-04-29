@@ -1,3 +1,5 @@
+// ✅ DefenseManager.js מתוקן - אין יותר קריסות
+
 import { useEffect } from 'react';
 
 export default function DefenseManager({ fighters, aliens, setFighters, setExplosions }) {
@@ -28,13 +30,18 @@ export default function DefenseManager({ fighters, aliens, setFighters, setExplo
         .map(([fighterId]) => parseInt(fighterId));
 
       if (fightersToRemove.length > 0) {
-        setFighters(prev => prev.filter(f => {
-          if (fightersToRemove.includes(f.id)) {
-            setExplosions(prev => [...prev, { lat: f.lat, lng: f.lng, type: 'fallen' }]);
-            return false;
-          }
-          return true;
-        }));
+        setFighters(prev => {
+          const updated = [];
+          prev.forEach(f => {
+            if (fightersToRemove.includes(f.id)) {
+              setExplosions(prevExp => [...prevExp, { lat: f.lat, lng: f.lng, type: 'fallen' }]);
+            } else {
+              updated.push(f);
+            }
+          });
+          return updated;
+        });
+
         console.log(`💀 Fighters killed: ${fightersToRemove.join(', ')}`);
       }
 

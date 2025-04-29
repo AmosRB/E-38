@@ -1,4 +1,3 @@
-// ✅ App.js מתוקן לגמרי עם handleMapClick תקין ובלי שגיאות בנייה
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -125,7 +124,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ cursor: cursorStyle }}>
+    <div style={{ cursor: cursorStyle, height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar
         landingCount={landings.length}
         alienCount={aliens.length}

@@ -65,15 +65,28 @@ export default function App() {
     };
 
     try {
-      await axios.post('https://e-38.onrender.com/api/update-invasion', {
-        type: "FeatureCollection",
-        features: [landingFeature]
-      });
-      console.log('📡 Landing created on server');
-    } catch (err) {
-      console.error('❌ Failed to create landing:', err.message);
-    }
-  };
+  await axios.post('https://e-38.onrender.com/api/update-invasion', {
+    type: "FeatureCollection",
+    features: [landingFeature]
+  });
+  console.log('🛸 Landing created on server');
+
+  // ✅ יצירת חייזרים אחרי הנחיתה
+  const directions = [0, 45, 90, 135, 180, 225, 270, 315];
+  for (let index = 0; index < directions.length; index++) {
+    const alienCode = String.fromCharCode(65 + (landings.length % 26)) + (index + 1);
+    await axios.post('https://e-38.onrender.com/api/create-alien', {
+      lat: latlng.lat,
+      lng: latlng.lng,
+      landingId,
+      alienCode
+    });
+    console.log(`👽 Alien ${alienCode} created`);
+  }
+} catch (err) {
+  console.error('❌ Failed to create landing or aliens:', err.message);
+}
+
 
   const handleJump = () => {
     setCreateTakilaMode(true);

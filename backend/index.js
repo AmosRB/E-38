@@ -496,6 +496,49 @@ app.get('/api/invasion', (req, res) => {
 
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
+// ✅ תיקון index.js - הוספת מסלולי מחיקה אמיתיים לשרת
+
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const polyline = require('polyline');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+let landings = [];
+let aliens = [];
+let takilas = [];
+let fighters = [];
+let shots = [];
+let explosions = [];
+
+// ✅ מסלול למחיקת כל הטקילות והלוחמים
+app.delete('/api/takilas', (req, res) => {
+  takilas = [];
+  fighters = [];
+  res.json({ message: "✅ Takilas and fighters deleted" });
+});
+
+// ✅ מסלול למחיקת הכל - נחיתות, חייזרים, טקילות ולוחמים
+app.delete('/api/clear-all', (req, res) => {
+  landings = [];
+  aliens = [];
+  takilas = [];
+  fighters = [];
+  res.json({ message: "✅ All invasion data cleared" });
+});
+
+// ❗ שים את זה לפני app.use(express.static(...)) ולפני app.listen
+
+// (המשך שאר השרת שלך, כולל /api/invasion ועוד)
+
+
+
 app.listen(PORT, () => {
   console.log(`🛡️ Server running on port ${PORT}`);
 });

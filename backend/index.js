@@ -198,49 +198,84 @@ setInterval(async () => {
 }, 1000);
 
 app.get('/api/invasion', (req, res) => {
-  const features = [
-    ...landings.map(l => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [l.lng, l.lat] },
-      properties: { id: l.id, type: 'landing', locationName: l.locationName, landingCode: l.landingCode }
-    })),
-    ...aliens.map(a => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [a.route[a.positionIdx][1], a.route[a.positionIdx][0]] },
-      properties: { id: a.id, type: 'alien', landingId: a.landingId, alienCode: a.alienCode }
-    })),
-...takilas.map(t => ({
-  type: 'Feature',
-  geometry: { type: 'Point', coordinates: [t.lng, t.lat] },
-  properties: {
-    id: t.id,
-    type: 'takila',
-    takilaCode: t.takilaCode,
-    showFightersOut: t.showFightersOut,
-    route: t.route,             
-    positionIdx: t.positionIdx,
-    status: t.showFightersOut ? 'WAITING' : ''
-  }
-}))
-,
-    ...fighters.map(f => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [f.lng, f.lat] },
-      properties: { id: f.id, type: 'fighter', takilaCode: f.takilaCode, phase: f.phase }
-    })),
-    ...shots.map((s, i) => ({
-      type: 'Feature',
-      geometry: { type: 'LineString', coordinates: [[s.from[1], s.from[0]], [s.to[1], s.to[0]]] },
-      properties: { id: `shot-${i}`, type: 'shot' }
-    })),
-    ...explosions.map((e, i) => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [e.lng, e.lat] },
-      properties: { id: `explosion-${i}`, type: 'explosion' }
-    }))
-  ];
-  res.json({ type: 'FeatureCollection', features });
+  const landingFeatures = landings.map(l => ({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [l.lng, l.lat]
+    },
+    properties: {
+      id: l.id,
+      type: "landing",
+      locationName: l.locationName,
+      landingCode: l.landingCode
+    }
+  }));
+
+  const alienFeatures = aliens.map(a => ({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [a.lng, a.lat]
+    },
+    properties: {
+      id: a.id,
+      type: "alien",
+      landingId: a.landingId,
+      alienCode: a.alienCode
+    }
+  }));
+
+  const takilaFeatures = takilas.map(t => ({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [t.lng, t.lat]
+    },
+    properties: {
+      id: t.id,
+      type: "takila",
+      takilaCode: t.takilaCode,
+      showFightersOut: t.showFightersOut,
+      route: t.route,
+      positionIdx: t.positionIdx,
+      status: t.showFightersOut ? 'WAITING' : ''
+    }
+  }));
+
+  const fighterFeatures = fighters.map(f => ({
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: f.route && f.route[f.positionIdx]
+        ? [f.route[f.positionIdx][1], f.route[f.positionIdx][0]]
+        : [f.lng, f.lat]
+    },
+    properties: {
+      id: f.id,
+      type: "fighter",
+      fighterCode: f.fighterCode,
+      takilaCode: f.takilaCode,
+      phase: f.phase,
+      route: f.route,
+      positionIdx: f.positionIdx,
+      homeLat: f.homeLat,
+      homeLng: f.homeLng,
+      lastUpdated: f.lastUpdated
+    }
+  }));
+
+  res.json({
+    type: "FeatureCollection",
+    features: [
+      ...landingFeatures,
+      ...alienFeatures,
+      ...takilaFeatures,
+      ...fighterFeatures
+    ]
+  });
 });
+
 
 app.post('/api/update-invasion', (req, res) => {
   const { features } = req.body;
@@ -278,14 +313,39 @@ app.post('/api/create-alien', async (req, res) => {
 
 app.post('/api/create-fighters', async (req, res) => {
   const { takilaId, targetAlienId } = req.body;
+
   const takila = takilas.find(t => t.id === takilaId);
-  const target = aliens.find(a => a.id === targetAlienId);
-  if (!takila || !target) return res.status(400).json({ error: 'Invalid target or takila' });
-  const modes = ['forward', 'right', 'left', 'back'];
-  const newFighters = modes.map(m => createSingleFighter(takila, target, m));
+  const alien = aliens.find(a => a.id === targetAlienId);
+
+  if (!takila || !alien) {
+    return res.status(404).json({ error: 'Takila or alien not found' });
+  }
+
+  const fighterCount = 4;
+  const newFighters = [];
+
+  for (let i = 0; i < fighterCount; i++) {
+    try {
+      const response = await axios.get(`http://router.project-osrm.org/route/v1/driving/${takila.lng},${takila.lat};${alien.lng},${alien.lat}?overview=full&geometries=polyline`);
+      const coordinates = polyline.decode(response.data.routes[0].geometry);
+      const route = coordinates.map(coord => [coord[0], coord[1]]); // [lat, lng]
+
+      newFighters.push({
+        id: Date.now() + Math.random(),
+        type: 'fighter',
+        takilaCode: takila.takilaCode,
+        phase: 'exit',
+        route,
+        positionIdx: 0
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to fetch route for fighter:', error.message);
+    }
+  }
+
   fighters.push(...newFighters);
-  takila.showFightersOut = true;
-  res.json({ message: '🧍 Fighters launched' });
+  res.status(201).json({ fighters: newFighters });
 });
 
 app.delete('/api/takilas', (req, res) => {

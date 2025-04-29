@@ -1,5 +1,5 @@
 
-// ✅ index.js - מתוקן מלא כולל תנועה, ירי, פיצוצים ויצירת לוחמים תקינה
+// ✅ index.js - גרסה מלאה עם תנועה, ירי, חיסולים, יצירת טקילה/חייזר/לוחמים וכל ה־routes
 
 const express = require('express');
 const cors = require('cors');
@@ -65,7 +65,7 @@ function createSingleFighter(takila, targetAlien, mode) {
   };
 }
 
-setInterval(async () => {
+setInterval(() => {
   const now = Date.now();
   shots = [];
   explosions = [];
@@ -73,7 +73,6 @@ setInterval(async () => {
 
   for (const f of fighters) {
     f.lastUpdated = now;
-
     if (!f.route || f.route.length === 0) continue;
     const current = f.route[f.positionIdx];
     if (!current) continue;
@@ -130,6 +129,52 @@ setInterval(async () => {
   }
 }, 1000);
 
+async function getRouteServer(from, to) {
+  try {
+    const res = await axios.get(
+      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=polyline`
+    );
+    return polyline.decode(res.data.routes[0].geometry).map(([lat, lng]) => [lat, lng]);
+  } catch (err) {
+    console.error('❌ Failed to fetch route:', err.message);
+    return [from];
+  }
+}
+
+async function createTakila(lat, lng) {
+  const randomLat = lat + (Math.random() - 0.5) * 0.1;
+  const randomLng = lng + (Math.random() - 0.5) * 0.1;
+  const route = await getRouteServer([lat, lng], [randomLat, randomLng]);
+
+  takilas.push({
+    id: Date.now(),
+    lat,
+    lng,
+    route,
+    positionIdx: 0,
+    takilaCode: getTakilaCode(),
+    showFightersOut: false
+  });
+}
+
+async function createAlien(lat, lng, landingId, alienCode) {
+  const angle = Math.random() * 360;
+  const to = [
+    lat + 0.05 * Math.cos(angle * Math.PI / 180),
+    lng + 0.05 * Math.sin(angle * Math.PI / 180)
+  ];
+  const route = await getRouteServer([lat, lng], to);
+
+  aliens.push({
+    id: Date.now() + Math.random(),
+    landingId,
+    alienCode,
+    route,
+    positionIdx: 0,
+    lastUpdated: Date.now()
+  });
+}
+
 app.post('/api/create-fighters', async (req, res) => {
   const { takilaId, targetAlienId } = req.body;
 
@@ -156,7 +201,123 @@ app.post('/api/create-fighters', async (req, res) => {
   res.status(201).json({ fighters: newFighters });
 });
 
-// רק כדוגמה: ניקוי כולל
+app.post('/api/create-takila', async (req, res) => {
+  const { lat, lng } = req.body;
+  await createTakila(lat, lng);
+  res.json({ message: '🚙 Takila created' });
+});
+
+app.post('/api/create-alien', async (req, res) => {
+  const { lat, lng, landingId, alienCode } = req.body;
+  await createAlien(lat, lng, landingId, alienCode);
+  res.json({ message: '👽 Alien created' });
+});
+
+app.post('/api/update-invasion', (req, res) => {
+  const { features } = req.body;
+  for (const f of features) {
+    if (f.properties?.type === 'landing') {
+      const id = f.properties.id;
+      if (!landings.find(l => l.id === id)) {
+        const landingCode = String.fromCharCode(65 + (landings.length % 26));
+        landings.push({
+          id,
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+          locationName: f.properties.locationName || 'Unknown',
+          createdAt: new Date().toISOString(),
+          landingCode,
+          lastUpdated: Date.now()
+        });
+      }
+    }
+  }
+  res.json({ message: '✅ Landing added' });
+});
+
+app.get('/api/invasion', (req, res) => {
+  const landingFeatures = landings.map(l => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [l.lng, l.lat] },
+    properties: {
+      id: l.id,
+      type: 'landing',
+      locationName: l.locationName,
+      landingCode: l.landingCode
+    }
+  }));
+
+  const alienFeatures = aliens.map(a => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [a.lng, a.lat] },
+    properties: {
+      id: a.id,
+      type: 'alien',
+      landingId: a.landingId,
+      alienCode: a.alienCode,
+      route: a.route,
+      positionIdx: a.positionIdx
+    }
+  }));
+
+  const takilaFeatures = takilas.map(t => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [t.lng, t.lat] },
+    properties: {
+      id: t.id,
+      type: 'takila',
+      takilaCode: t.takilaCode,
+      showFightersOut: t.showFightersOut,
+      route: t.route,
+      positionIdx: t.positionIdx,
+      status: t.showFightersOut ? 'WAITING' : ''
+    }
+  }));
+
+  const fighterFeatures = fighters.map(f => ({
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: f.route[f.positionIdx]
+        ? [f.route[f.positionIdx][1], f.route[f.positionIdx][0]]
+        : [f.lng || 0, f.lat || 0]
+    },
+    properties: {
+      id: f.id,
+      type: 'fighter',
+      fighterCode: f.fighterCode,
+      takilaCode: f.takilaCode,
+      phase: f.phase,
+      lat: f.lat,
+      lng: f.lng,
+      homeLat: f.homeLat,
+      homeLng: f.homeLng,
+      route: f.route,
+      positionIdx: f.positionIdx,
+      lastUpdated: f.lastUpdated
+    }
+  }));
+
+  const explosionFeatures = explosions.map(e => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [e.lng, e.lat] },
+    properties: {
+      type: e.type
+    }
+  }));
+
+  res.json({
+    type: 'FeatureCollection',
+    features: [
+      ...landingFeatures,
+      ...alienFeatures,
+      ...takilaFeatures,
+      ...fighterFeatures,
+      ...explosionFeatures
+    ]
+  });
+});
+
 app.delete('/api/clear-all', (req, res) => {
   landings = [];
   aliens = [];

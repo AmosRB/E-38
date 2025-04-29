@@ -7,7 +7,6 @@ import AlienManager from './components/AlienManager';
 import InvasionSync from './components/InvasionSync';
 import BottomBar from './components/BottomBar';
 import TakilaManager from './components/TakilaManager';
-import getRoute from './utils/getRoute';
 import axios from 'axios';
 import FighterManager from './components/FighterManager';
 import BattleManager from './components/BattleManager';

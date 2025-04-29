@@ -249,7 +249,7 @@ app.get('/api/invasion', (req, res) => {
       type: "Point",
       coordinates: f.route && f.route[f.positionIdx]
         ? [f.route[f.positionIdx][1], f.route[f.positionIdx][0]]
-        : [f.lng, f.lat]
+        : [f.lng || 0, f.lat || 0]
     },
     properties: {
       id: f.id,
@@ -257,11 +257,13 @@ app.get('/api/invasion', (req, res) => {
       fighterCode: f.fighterCode,
       takilaCode: f.takilaCode,
       phase: f.phase,
-      route: f.route,
-      positionIdx: f.positionIdx,
-      homeLat: f.homeLat,
-      homeLng: f.homeLng,
-      lastUpdated: f.lastUpdated
+      lat: f.lat || 0,
+      lng: f.lng || 0,
+      homeLat: f.homeLat || 0,
+      homeLng: f.homeLng || 0,
+      route: f.route || [],
+      positionIdx: f.positionIdx || 0,
+      lastUpdated: f.lastUpdated || Date.now()
     }
   }));
 

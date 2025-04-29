@@ -27,6 +27,7 @@ html, body, #root {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .bottombar {
@@ -43,28 +44,33 @@ html, body, #root {
   height: 50px;
   font-size: 16px;
   padding: 0 10px;
+  flex-wrap: wrap;
 }
 
 /* רספונסיביות לטלפונים */
 @media (max-width: 768px) {
   .bottombar {
-    flex-direction: column;
+    flex-direction: row; /* ✅ במקום column */
+    flex-wrap: wrap;
     height: auto;
-    padding: 10px 0;
+    padding: 10px;
+    gap: 6px;
   }
 
   .bottombar button {
-    width: 80%;
-    margin: 5px 0;
+    width: auto;
+    margin: 0;
   }
 
   .navbar {
-    flex-direction: column;
+    flex-direction: row; /* ✅ במקום column */
+    flex-wrap: wrap;
     text-align: center;
-    padding: 10px 0;
+    justify-content: space-around;
+    padding: 10px 5px;
   }
 
   .navbar button {
-    margin-top: 5px;
+    margin: 0;
   }
 }

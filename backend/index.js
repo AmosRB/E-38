@@ -333,10 +333,15 @@ app.post('/api/create-fighters', async (req, res) => {
       newFighters.push({
         id: Date.now() + Math.random(),
         type: 'fighter',
+        lat: takila.lat,
+        lng: takila.lng,
+        homeLat: takila.lat,
+        homeLng: takila.lng,
         takilaCode: takila.takilaCode,
         phase: 'exit',
         route,
-        positionIdx: 0
+        positionIdx: 0,
+        lastUpdated: Date.now()
       });
 
     } catch (error) {

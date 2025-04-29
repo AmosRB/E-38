@@ -1,4 +1,4 @@
-// ✅ App.js מעודכן - בלי AlienManager ו-TakilaManager
+// ✅ App.js מתוקן - בלי שליחת landingCode מהפרונט
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -57,12 +57,11 @@ export default function App() {
 
     const locationName = await getNearestTownName(latlng.lat, latlng.lng);
     const landingId = Date.now();
-    const landingCode = String.fromCharCode(65 + (landings.length % 26));
 
     const landingFeature = {
       type: "Feature",
       geometry: { type: "Point", coordinates: [latlng.lng, latlng.lat] },
-      properties: { type: "landing", id: landingId, locationName, landingCode }
+      properties: { type: "landing", id: landingId, locationName }
     };
 
     try {
@@ -78,7 +77,7 @@ export default function App() {
     const directions = [0, 45, 90, 135, 180, 225, 270, 315];
 
     for (let index = 0; index < directions.length; index++) {
-      const alienCode = `${landingCode}${index + 1}`;
+      const alienCode = `${String.fromCharCode(65 + (landings.length % 26))}${index + 1}`;
       try {
         await axios.post('https://e-38.onrender.com/api/create-alien', {
           lat: latlng.lat,

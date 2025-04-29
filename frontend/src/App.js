@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import './App.css';
 import axios from 'axios';
-import Navbar from './Navbar';
-import BottomBar from './BottomBar';
-import MapView from './MapView';
-import SidePanelLeft from './SidePanelLeft';
-import InvasionSync from './InvasionSync';
-import AlienManager from './AlienManager';
-import TakilaManager from './TakilaManager';
-import FighterManager from './FighterManager';
-import ShotManager from './ShotManager';
-import ExplosionManager from './ExplosionManager';
-import DefenseManager from './DefenseManager';
-import FighterMovementManager from './FighterMovementManager';
-import BattleManager from './BattleManager';
-import ConfirmDialog from './ConfirmDialog';
+import Navbar from './components/Navbar';
+import BottomBar from './components/BottomBar';
+import MapView from './components/MapView';
+import InvasionSync from './components/InvasionSync';
+import AlienManager from './components/AlienManager';
+import TakilaManager from './components/TakilaManager';
+import FighterManager from './components/FighterManager';
+import ShotManager from './components/ShotManager';
+import ExplosionManager from './components/ExplosionManager';
+import DefenseManager from './components/DefenseManager';
+import FighterMovementManager from './components/FighterMovementManager';
+import BattleManager from './components/BattleManager';
+import ConfirmDialog from './components/ConfirmDialog';
 
 export default function App() {
   const [landings, setLandings] = useState([]);
@@ -127,10 +126,6 @@ export default function App() {
           onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
           onRequestClearAll={() => setShowConfirmDeleteAll(true)}
         />
-      </div>
-
-      <div className="sidepanel">
-        <SidePanelLeft logItems={[]} onDelete={() => {}} />
       </div>
 
       <div className="map">

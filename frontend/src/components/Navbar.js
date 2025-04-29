@@ -26,7 +26,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
       </div>
 
       {/* טקסט מרכזי - ספירות עם כדור הארץ מסתובב */}
-      <div style={{ display: 'flex', alignItems: 'center', fontSize: '18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', fontSize: '14px' }}>
         <span style={{ marginRight: '10px' }}>🛸 {landingCount}</span>
         <span style={{
           display: 'inline-block',

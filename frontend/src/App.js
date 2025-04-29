@@ -69,7 +69,7 @@ export default function App() {
         type: "FeatureCollection",
         features: [landingFeature]
       });
-      console.log('📡 Landing created on server');
+      console.log('🛸 Landing created on server');
     } catch (err) {
       console.error('❌ Failed to create landing:', err.message);
     }

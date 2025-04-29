@@ -1,4 +1,4 @@
-// ✅ App.js מתוקן - עוטף את ShotManager ב־flex: 1 למניעת גלילה מיותרת
+// ✅ App.js חדש: מפה במסך מלא עם Navbar ו-BottomBar צפים
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -125,13 +125,30 @@ export default function App() {
   };
 
   return (
-    <div style={{ cursor: cursorStyle, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'relative', height: '100vh', width: '100vw', cursor: cursorStyle }}>
+      <ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions} setFighters={setFighters}>
+        {(shots) => (
+          <MapView
+            center={center}
+            landings={landings}
+            aliens={aliens}
+            takilas={takilas}
+            fighters={fighters}
+            explosions={explosions}
+            shots={shots}
+            onMapClick={handleMapClick}
+          />
+        )}
+      </ShotManager>
+
       <Navbar
         landingCount={landings.length}
         alienCount={aliens.length}
         onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
         onRequestClearAll={() => { setShowConfirmDeleteAll(true); }}
       />
+
+      <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
 
       <InvasionSync
         landings={landings}
@@ -159,25 +176,6 @@ export default function App() {
       <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
       <FighterMovementManager fighters={fighters} setFighters={setFighters} aliens={aliens} setTakilas={setTakilas} />
 
-      <div style={{ flex: 1 }}>
-        <ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions} setFighters={setFighters}>
-          {(shots) => (
-            <MapView
-              center={center}
-              landings={landings}
-              aliens={aliens}
-              takilas={takilas}
-              fighters={fighters}
-              explosions={explosions}
-              shots={shots}
-              onMapClick={handleMapClick}
-            />
-          )}
-        </ShotManager>
-      </div>
-
-      <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
-
       {showConfirmDeleteTakilas && (
         <ConfirmDialog
           message="האם אתה בטוח שברצונך למחוק את כל הטקילות?"
@@ -193,7 +191,6 @@ export default function App() {
           onCancel={() => setShowConfirmDeleteAll(false)}
         />
       )}
-
     </div>
   );
 }

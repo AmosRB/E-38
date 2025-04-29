@@ -1,7 +1,6 @@
 // ✅ Navbar.js מתוקן - כפתור DELETE ALL בשמאל, מחובר, ו-Create בימין
 
 import React from 'react';
-import './Navbar.css';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (

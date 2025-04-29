@@ -11,21 +11,32 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
         const currentPos = f.route[f.positionIdx];
         const nextPos = f.route[f.positionIdx + 1];
 
+        // סוף המסלול — מפעיל מעבר שלב
         if (!currentPos || !nextPos) {
           if (f.phase === "exit") {
             const targetAlien = aliens.find(a => a.id === f.targetAlienId);
             if (!targetAlien || !Array.isArray(targetAlien.route) || targetAlien.route.length === 0) {
-              return { ...f, phase: "return", route: [[f.lat, f.lng], [f.homeLat, f.homeLng]], positionIdx: 0 };
+              return {
+                ...f,
+                phase: "return",
+                route: [[f.lat || 0, f.lng || 0], [f.homeLat || 0, f.homeLng || 0]],
+                positionIdx: 0
+              };
             }
 
             const targetPos = targetAlien.route[targetAlien.positionIdx] || targetAlien.route[0];
             if (!Array.isArray(targetPos)) {
-              return { ...f, phase: "return", route: [[f.lat, f.lng], [f.homeLat, f.homeLng]], positionIdx: 0 };
+              return {
+                ...f,
+                phase: "return",
+                route: [[f.lat || 0, f.lng || 0], [f.homeLat || 0, f.homeLng || 0]],
+                positionIdx: 0
+              };
             }
 
             return {
               ...f,
-              route: [[f.lat, f.lng], [targetPos[0], targetPos[1]]],
+              route: [[f.lat || 0, f.lng || 0], [targetPos[0], targetPos[1]]],
               positionIdx: 0,
               phase: "chase"
             };
@@ -33,8 +44,8 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
 
           if (f.phase === "return") {
             const distanceHome = Math.sqrt(
-              (f.lat - f.homeLat) ** 2 +
-              (f.lng - f.homeLng) ** 2
+              ((f.lat || 0) - (f.homeLat || 0)) ** 2 +
+              ((f.lng || 0) - (f.homeLng || 0)) ** 2
             );
 
             if (distanceHome < 0.0005) {
@@ -47,9 +58,10 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
           return f;
         }
 
+        // המשך תנועה במסלול
         const moveLat = nextPos[0] - currentPos[0];
         const moveLng = nextPos[1] - currentPos[1];
-        const distance = Math.sqrt(moveLat * moveLat + moveLng * moveLng);
+        const distance = Math.sqrt(moveLat ** 2 + moveLng ** 2);
         const moveStep = (f.speed || 2000) / 100000;
 
         if (distance < moveStep) {

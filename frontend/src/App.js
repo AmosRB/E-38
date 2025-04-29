@@ -116,89 +116,107 @@ export default function App() {
     }
   };
 
-  return (
-      <div className="map-container">
-        <ShotManager
-          fighters={fighters}
-          aliens={aliens}
-          setAliens={setAliens}
-          setExplosions={setExplosions}
-          setFighters={setFighters}
-        >
-          {(shots) => (
-            <MapView
-              center={[32.08, 34.78]}
-              landings={landings}
-              aliens={aliens}
-              takilas={takilas}
-              fighters={fighters}
-              explosions={explosions}
-              shots={shots}
-              onMapClick={handleMapClick}
-            />
-          )}
-        </ShotManager>
-      </div>
-
-      <div className="navbar">
-        <Navbar
-          landingCount={landings.length}
-          alienCount={aliens.length}
-          onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
-          onRequestClearAll={() => setShowConfirmDeleteAll(true)}
-        />
-      </div>
-
-      <div className="bottombar">
-        <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
-      </div>
-
-      {showConfirmDeleteTakilas && (
-        <ConfirmDialog
-          message="Are you sure you want to delete all Takilas?"
-          onConfirm={handleConfirmDeleteTakilas}
-          onCancel={() => setShowConfirmDeleteTakilas(false)}
-        />
-      )}
-
-
-  {showConfirmDeleteAll && (
-  <ConfirmDialog
-    message="Are you sure you want to delete all landings?"
-    onConfirm={handleConfirmDeleteAll}
-    onCancel={() => setShowConfirmDeleteAll(false)}
-  />
-)}
-
-
-      <InvasionSync
-        landings={landings}
-        aliens={aliens}
-        setLandings={setLandings}
-        setAliens={setAliens}
-        setTakilas={setTakilas}
-        setFighters={setFighters}
-        setShots={setShots}
-        setExplosions={setExplosions}
-        isDeleting={isDeleting}
-      />
-
-      <BattleManager
+return (
+  <div className="app-layout" style={{ cursor: cursorStyle }}>
+    <div className="map-container">
+      <ShotManager
         fighters={fighters}
         aliens={aliens}
-        landings={landings}
         setAliens={setAliens}
-        setFighters={setFighters}
-        setShots={setShots}
         setExplosions={setExplosions}
-      />
-
-      <AlienManager aliens={aliens} setAliens={setAliens} />
-      <TakilaManager takilas={takilas} setTakilas={setTakilas} />
-      <FighterManager takilas={takilas} aliens={aliens} />
-      <DefenseManager fighters={fighters} aliens={aliens} setFighters={setFighters} setExplosions={setExplosions} />
-      <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
-      <FighterMovementManager fighters={fighters} setFighters={setFighters} aliens={aliens} setTakilas={setTakilas} />
+        setFighters={setFighters}
+      >
+        {(shots) => (
+          <MapView
+            center={[32.08, 34.78]}
+            landings={landings}
+            aliens={aliens}
+            takilas={takilas}
+            fighters={fighters}
+            explosions={explosions}
+            shots={shots}
+            onMapClick={handleMapClick}
+          />
+        )}
+      </ShotManager>
     </div>
-  );
+
+    <div className="navbar">
+      <Navbar
+        landingCount={landings.length}
+        alienCount={aliens.length}
+        onActivateCreate={() => {
+          setCreateMode(true);
+          setCursorStyle("crosshair");
+        }}
+        onRequestClearAll={() => setShowConfirmDeleteAll(true)}
+      />
+    </div>
+
+    <div className="bottombar">
+      <BottomBar
+        onJump={handleJump}
+        onCallback={handleCallback}
+        fighters={fighters}
+        takilas={takilas}
+      />
+    </div>
+
+    {showConfirmDeleteTakilas && (
+      <ConfirmDialog
+        message="Are you sure you want to delete all Takilas?"
+        onConfirm={handleConfirmDeleteTakilas}
+        onCancel={() => setShowConfirmDeleteTakilas(false)}
+      />
+    )}
+
+    {showConfirmDeleteAll && (
+      <ConfirmDialog
+        message="Are you sure you want to delete all landings?"
+        onConfirm={handleConfirmDeleteAll}
+        onCancel={() => setShowConfirmDeleteAll(false)}
+      />
+    )}
+
+    <InvasionSync
+      landings={landings}
+      aliens={aliens}
+      setLandings={setLandings}
+      setAliens={setAliens}
+      setTakilas={setTakilas}
+      setFighters={setFighters}
+      setShots={setShots}
+      setExplosions={setExplosions}
+      isDeleting={isDeleting}
+    />
+
+    <BattleManager
+      fighters={fighters}
+      aliens={aliens}
+      landings={landings}
+      setAliens={setAliens}
+      setFighters={setFighters}
+      setShots={setShots}
+      setExplosions={setExplosions}
+    />
+
+    <AlienManager aliens={aliens} setAliens={setAliens} />
+    <TakilaManager takilas={takilas} setTakilas={setTakilas} />
+    <FighterManager takilas={takilas} aliens={aliens} />
+    <DefenseManager
+      fighters={fighters}
+      aliens={aliens}
+      setFighters={setFighters}
+      setExplosions={setExplosions}
+    />
+    <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
+    <FighterMovementManager
+      fighters={fighters}
+      setFighters={setFighters}
+      aliens={aliens}
+      setTakilas={setTakilas}
+    />
+  </div>
+);
+
 } 

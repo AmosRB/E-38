@@ -1,11 +1,11 @@
-// ✅ InvasionSync.js - גרסה מעודכנת עם קליטה נכונה של route ו-positionIdx
+// ✅ InvasionSync.js מעודכן - כולל קליטת shots ו-explosions
 
 import { useEffect } from 'react';
 import axios from 'axios';
 
 const API_BASE = "https://e-38.onrender.com";
 
-export default function InvasionSync({ landings, aliens, setLandings, setAliens, setTakilas, setFighters, isDeleting }) {
+export default function InvasionSync({ landings, aliens, setLandings, setAliens, setTakilas, setFighters, setShots, setExplosions, isDeleting }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       if (isDeleting) return;
@@ -34,11 +34,10 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           id: f.properties.id,
           lat: f.geometry.coordinates[1],
           lng: f.geometry.coordinates[0],
-          lastUpdated: f.properties.lastUpdated,
-          direction: f.properties.direction || Math.random() * 360,
+          direction: f.properties.direction || 0,
           takilaCode: f.properties.takilaCode || '',
           positionIdx: f.properties.positionIdx || 0,
-          route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
+          route: f.properties.route || [],
           showFightersOut: f.properties.showFightersOut || false
         }));
 
@@ -48,13 +47,27 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           lng: f.geometry.coordinates[0],
           lastUpdated: f.properties.lastUpdated,
           takilaCode: f.properties.takilaCode || '',
-          fighterCode: f.properties.fighterCode || ''
+          fighterCode: f.properties.fighterCode || '',
+          phase: f.properties.phase || 'exit'
+        }));
+
+        const remoteShots = features.filter(f => f.properties?.type === 'shot').map(f => ({
+          from: [f.geometry.coordinates[0][1], f.geometry.coordinates[0][0]],
+          to: [f.geometry.coordinates[1][1], f.geometry.coordinates[1][0]]
+        }));
+
+        const remoteExplosions = features.filter(f => f.properties?.type === 'explosion').map(f => ({
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+          type: f.properties.type
         }));
 
         setLandings(remoteLandings);
         setAliens(remoteAliens);
         setTakilas(remoteTakilas);
         setFighters(remoteFighters);
+        setShots(remoteShots);
+        setExplosions(remoteExplosions);
 
       } catch (err) {
         console.error("❌ Failed to sync invasion:", err.message);
@@ -62,7 +75,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [landings, aliens, isDeleting, setLandings, setAliens, setTakilas, setFighters]);
+  }, [landings, aliens, isDeleting, setLandings, setAliens, setTakilas, setFighters, setShots, setExplosions]);
 
   return null;
 }

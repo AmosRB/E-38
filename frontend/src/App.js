@@ -1,12 +1,10 @@
-// App.js - גרסה מעודכנת ומלאה
+// ✅ App.js מעודכן - בלי AlienManager ו-TakilaManager
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import MapView from './components/MapView';
-import AlienManager from './components/AlienManager';
 import InvasionSync from './components/InvasionSync';
 import BottomBar from './components/BottomBar';
-import TakilaManager from './components/TakilaManager';
 import axios from 'axios';
 import FighterManager from './components/FighterManager';
 import BattleManager from './components/BattleManager';
@@ -129,8 +127,6 @@ export default function App() {
         onRequestClearAll={() => { setShowConfirmDeleteAll(true); }}
       />
 
-      <AlienManager aliens={aliens} setAliens={setAliens} />
-      <TakilaManager takilas={takilas} setTakilas={setTakilas} />
       <InvasionSync
         landings={landings}
         aliens={aliens}

@@ -1,4 +1,4 @@
-// ✅ App.js מתוקן - בלי שליחת landingCode מהפרונט
+// ✅ App.js מתוקן עם תמיכה במחיקת הכל (CLEAR ALL)
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -69,26 +69,9 @@ export default function App() {
         type: "FeatureCollection",
         features: [landingFeature]
       });
-      console.log('🛸 Landing created on server');
+      console.log('📡 Landing created on server');
     } catch (err) {
       console.error('❌ Failed to create landing:', err.message);
-    }
-
-    const directions = [0, 45, 90, 135, 180, 225, 270, 315];
-
-    for (let index = 0; index < directions.length; index++) {
-      const alienCode = `${String.fromCharCode(65 + (landings.length % 26))}${index + 1}`;
-      try {
-        await axios.post('https://e-38.onrender.com/api/create-alien', {
-          lat: latlng.lat,
-          lng: latlng.lng,
-          landingId,
-          alienCode
-        });
-        console.log(`👽 Alien ${alienCode} created`);
-      } catch (err) {
-        console.error(`❌ Failed to create alien ${alienCode}:`, err.message);
-      }
     }
   };
 
@@ -113,8 +96,20 @@ export default function App() {
     }
   };
 
-  const handleCancelDeleteTakilas = () => {
-    setShowConfirmDeleteTakilas(false);
+  const handleConfirmDeleteAll = async () => {
+    setShowConfirmDeleteAll(false);
+    try {
+      await fetch('https://e-38.onrender.com/api/clear-all', { method: 'DELETE' });
+      setLandings([]);
+      setAliens([]);
+      setTakilas([]);
+      setFighters([]);
+      setShots([]);
+      setExplosions([]);
+      console.log('🧹 Cleared all data');
+    } catch (err) {
+      console.error('❌ Failed to clear all:', err.message);
+    }
   };
 
   return (
@@ -133,6 +128,8 @@ export default function App() {
         setAliens={setAliens}
         setTakilas={setTakilas}
         setFighters={setFighters}
+        setShots={setShots}
+        setExplosions={setExplosions}
       />
 
       <BattleManager
@@ -145,7 +142,7 @@ export default function App() {
         setExplosions={setExplosions}
       />
 
-      <FighterManager takilas={takilas} aliens={aliens} fighters={fighters} setFighters={setFighters} setTakilas={setTakilas} />
+      <FighterManager takilas={takilas} aliens={aliens} />
       <DefenseManager fighters={fighters} aliens={aliens} setFighters={setFighters} setExplosions={setExplosions} />
       <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
       <FighterMovementManager fighters={fighters} setFighters={setFighters} aliens={aliens} setTakilas={setTakilas} />
@@ -171,9 +168,18 @@ export default function App() {
         <ConfirmDialog
           message="האם אתה בטוח שברצונך למחוק את כל הטקילות?"
           onConfirm={handleConfirmDeleteTakilas}
-          onCancel={handleCancelDeleteTakilas}
+          onCancel={() => setShowConfirmDeleteTakilas(false)}
         />
       )}
+
+      {showConfirmDeleteAll && (
+        <ConfirmDialog
+          message="האם אתה בטוח שברצונך למחוק את כל הנחיתות, החייזרים והטקילות?"
+          onConfirm={handleConfirmDeleteAll}
+          onCancel={() => setShowConfirmDeleteAll(false)}
+        />
+      )}
+
     </div>
   );
 }

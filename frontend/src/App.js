@@ -160,7 +160,7 @@ export default function App() {
         <ConfirmDialog
           message="Are you sure you want to delete all Takilas?"
           onConfirm={handleConfirmDeleteTakilas}
-          onCancel={(Are you sure you want to delete all landings?) => setShowConfirmDeleteTakilas(false)}
+         onCancel={() => setShowConfirmDeleteTakilas(false)}
         />
       )}
 

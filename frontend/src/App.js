@@ -1,3 +1,4 @@
+// ✅ App.js מתוקן למניעת גלילה - כולל flex: 1 סביב ShotManager
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -158,20 +159,22 @@ export default function App() {
       <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
       <FighterMovementManager fighters={fighters} setFighters={setFighters} aliens={aliens} setTakilas={setTakilas} />
 
-      <ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions} setFighters={setFighters}>
-        {(shots) => (
-          <MapView
-            center={center}
-            landings={landings}
-            aliens={aliens}
-            takilas={takilas}
-            fighters={fighters}
-            explosions={explosions}
-            shots={shots}
-            onMapClick={handleMapClick}
-          />
-        )}
-      </ShotManager>
+      <div style={{ flex: 1 }}>
+        <ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions} setFighters={setFighters}>
+          {(shots) => (
+            <MapView
+              center={center}
+              landings={landings}
+              aliens={aliens}
+              takilas={takilas}
+              fighters={fighters}
+              explosions={explosions}
+              shots={shots}
+              onMapClick={handleMapClick}
+            />
+          )}
+        </ShotManager>
+      </div>
 
       <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
 

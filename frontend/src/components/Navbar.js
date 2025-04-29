@@ -1,7 +1,3 @@
-// ✅ Navbar.js מתוקן - כפתור DELETE ALL בשמאל, מחובר, ו-Create בימין
-
-import React from 'react';
-// ✅ Navbar.js חדש עם כפתורים מעוצבים ואייקון כדור הארץ מסתובב
 
 import React from 'react';
 

@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (
-    <div className="navbar" style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5em 1em', background: 'black', color: 'white', alignItems: 'center' }}>
+    <div className="navbar" style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5em 1em', background: 'black', color: 'white', alignItems: 'center', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000 }}>
 
       {/* צד שמאל - DELETE ALL */}
       <div>

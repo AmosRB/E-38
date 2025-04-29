@@ -117,7 +117,8 @@ export default function App() {
   };
 
   return (
-    <div className="App" style={{ cursor: cursorStyle }}>
+   <div className="app-layout" style={{ cursor: cursorStyle }}>
+
 
       <div className="navbar">
         <Navbar
@@ -157,15 +158,15 @@ export default function App() {
 
       {showConfirmDeleteTakilas && (
         <ConfirmDialog
-          message="האם אתה בטוח שברצונך למחוק את כל הטקילות?"
+          message="Are you sure you want to delete all Takilas?"
           onConfirm={handleConfirmDeleteTakilas}
-          onCancel={() => setShowConfirmDeleteTakilas(false)}
+          onCancel={(Are you sure you want to delete all landings?) => setShowConfirmDeleteTakilas(false)}
         />
       )}
 
       {showConfirmDeleteAll && (
         <ConfirmDialog
-          message="האם אתה בטוח שברצונך למחוק את כל הנחיתות, החייזרים והטקילות?"
+          message=" "
           onConfirm={handleConfirmDeleteAll}
           onCancel={() => setShowConfirmDeleteAll(false)}
         />

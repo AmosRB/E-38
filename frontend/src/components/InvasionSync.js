@@ -1,4 +1,4 @@
-// ✅ InvasionSync.js מתוקן לגמרי - כולל route ו-positionIdx לפייטרים
+// ✅ InvasionSync.js סופי ומאובטח - מתאים לשרת הנוכחי שלך
 
 import { useEffect } from 'react';
 import axios from 'axios';

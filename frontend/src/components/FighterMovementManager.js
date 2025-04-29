@@ -14,7 +14,6 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
         if (!currentPos || !nextPos) {
           if (f.phase === "exit") {
             const targetAlien = aliens.find(a => a.id === f.targetAlienId);
-
             if (!targetAlien || !Array.isArray(targetAlien.route) || targetAlien.route.length === 0) {
               return { ...f, phase: "return", route: [[f.lat, f.lng], [f.homeLat, f.homeLng]], positionIdx: 0 };
             }
@@ -39,7 +38,7 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
             );
 
             if (distanceHome < 0.0005) {
-              return null; // מוחק את הלוחם שחזר
+              return null; // מוחק לוחם שחזר הביתה
             }
 
             return f;
@@ -51,7 +50,7 @@ export default function FighterMovementManager({ fighters, setFighters, aliens, 
         const moveLat = nextPos[0] - currentPos[0];
         const moveLng = nextPos[1] - currentPos[1];
         const distance = Math.sqrt(moveLat * moveLat + moveLng * moveLng);
-        const moveStep = (f.speed || 2000) / 100000; // קצת יותר מהיר עכשיו
+        const moveStep = (f.speed || 2000) / 100000;
 
         if (distance < moveStep) {
           if (f.positionIdx < f.route.length - 2) {

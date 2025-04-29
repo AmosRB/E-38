@@ -200,10 +200,7 @@ setInterval(async () => {
 app.get('/api/invasion', (req, res) => {
   const landingFeatures = landings.map(l => ({
     type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [l.lng, l.lat]
-    },
+    geometry: { type: "Point", coordinates: [l.lng, l.lat] },
     properties: {
       id: l.id,
       type: "landing",
@@ -214,24 +211,20 @@ app.get('/api/invasion', (req, res) => {
 
   const alienFeatures = aliens.map(a => ({
     type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [a.lng, a.lat]
-    },
+    geometry: { type: "Point", coordinates: [a.lng, a.lat] },
     properties: {
       id: a.id,
       type: "alien",
       landingId: a.landingId,
-      alienCode: a.alienCode
+      alienCode: a.alienCode,
+      route: a.route,
+      positionIdx: a.positionIdx
     }
   }));
 
   const takilaFeatures = takilas.map(t => ({
     type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [t.lng, t.lat]
-    },
+    geometry: { type: "Point", coordinates: [t.lng, t.lat] },
     properties: {
       id: t.id,
       type: "takila",
@@ -267,16 +260,26 @@ app.get('/api/invasion', (req, res) => {
     }
   }));
 
+  const explosionFeatures = explosions.map(e => ({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [e.lng, e.lat] },
+    properties: {
+      type: e.type
+    }
+  }));
+
   res.json({
     type: "FeatureCollection",
     features: [
       ...landingFeatures,
       ...alienFeatures,
       ...takilaFeatures,
-      ...fighterFeatures
+      ...fighterFeatures,
+      ...explosionFeatures
     ]
   });
 });
+
 
 
 app.post('/api/update-invasion', (req, res) => {

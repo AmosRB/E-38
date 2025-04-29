@@ -65,7 +65,7 @@ function createSingleFighter(takila, targetAlien, mode) {
   };
 }
 
-setInterval(() => {
+setInterval(async () => {
   const now = Date.now();
   shots = [];
   explosions = [];

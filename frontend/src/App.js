@@ -1,4 +1,4 @@
-// ✅ App.js מתוקן למניעת גלילה - כולל flex: 1 סביב ShotManager
+// ✅ App.js מתוקן - עוטף את ShotManager ב־flex: 1 למניעת גלילה מיותרת
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';

@@ -148,11 +148,18 @@ app.get('/api/invasion', (req, res) => {
     properties: { id: landing.id, createdAt: landing.createdAt, type: "landing", locationName: landing.locationName, landingCode: landing.landingCode }
   }));
 
-  const alienFeatures = aliens.map(alien => ({
-    type: "Feature",
-    geometry: { type: "Point", coordinates: [alien.route[alien.positionIdx][1], alien.route[alien.positionIdx][0]] },
-    properties: { id: alien.id, landingId: alien.landingId, type: "alien", alienCode: alien.alienCode }
-  }));
+const alienFeatures = aliens.map(alien => ({
+  type: "Feature",
+  geometry: { type: "Point", coordinates: [alien.route[alien.positionIdx][1], alien.route[alien.positionIdx][0]] },
+  properties: {
+    id: alien.id,
+    landingId: alien.landingId,
+    type: "alien",
+    alienCode: alien.alienCode,
+    route: alien.route // ✅ הוספה חשובה - מחזירים את המסלול כולו!
+  }
+}));
+
 
   const takilaFeatures = takilas.map(t => ({
     type: "Feature",

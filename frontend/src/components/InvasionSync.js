@@ -1,4 +1,4 @@
-// ✅ InvasionSync.js מעודכן - כולל קליטת shots ו-explosions
+// ✅ InvasionSync.js מתוקן לגמרי - כולל route ו-positionIdx לפייטרים
 
 import { useEffect } from 'react';
 import axios from 'axios';
@@ -24,7 +24,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
 
         const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
           id: f.properties.id,
-          route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
+          route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]]],
           positionIdx: f.properties.positionIdx || 0,
           landingId: f.properties.landingId,
           alienCode: f.properties.alienCode || '?'
@@ -43,34 +43,27 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
 
         const remoteFighters = features.filter(f => f.properties?.type === 'fighter').map(f => ({
           id: f.properties.id,
-          lat: f.geometry.coordinates[1],
-          lng: f.geometry.coordinates[0],
-          lastUpdated: f.properties.lastUpdated,
+          lat: f.properties.lat || f.geometry.coordinates[1],
+          lng: f.properties.lng || f.geometry.coordinates[0],
+          homeLat: f.properties.homeLat || f.geometry.coordinates[1],
+          homeLng: f.properties.homeLng || f.geometry.coordinates[0],
+          lastUpdated: f.properties.lastUpdated || Date.now(),
           takilaCode: f.properties.takilaCode || '',
           fighterCode: f.properties.fighterCode || '',
-          phase: f.properties.phase || 'exit'
-        }));
-
-        const remoteShots = features.filter(f => f.properties?.type === 'shot').map(f => ({
-          from: [f.geometry.coordinates[0][1], f.geometry.coordinates[0][0]],
-          to: [f.geometry.coordinates[1][1], f.geometry.coordinates[1][0]]
-        }));
-
-        const remoteExplosions = features.filter(f => f.properties?.type === 'explosion').map(f => ({
-          lat: f.geometry.coordinates[1],
-          lng: f.geometry.coordinates[0],
-          type: f.properties.type
+          phase: f.properties.phase || 'exit',
+          route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]]],
+          positionIdx: f.properties.positionIdx || 0
         }));
 
         setLandings(remoteLandings);
         setAliens(remoteAliens);
         setTakilas(remoteTakilas);
         setFighters(remoteFighters);
-        setShots(remoteShots);
-        setExplosions(remoteExplosions);
+        setShots([]);
+        setExplosions([]);
 
       } catch (err) {
-        console.error("❌ Failed to sync invasion:", err.message);
+        console.error("\u274C Failed to sync invasion:", err.message);
       }
     }, 1000);
 

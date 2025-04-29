@@ -15,7 +15,6 @@ import DefenseManager from './DefenseManager';
 import FighterMovementManager from './FighterMovementManager';
 import BattleManager from './BattleManager';
 import ConfirmDialog from './ConfirmDialog';
-import getNearestTownName from './utils/getNearestTownName';
 
 export default function App() {
   const [landings, setLandings] = useState([]);
@@ -49,14 +48,14 @@ export default function App() {
     setCreateMode(false);
     setCursorStyle("default");
 
-    const locationName = await getNearestTownName(latlng.lat, latlng.lng);
     const landingId = Date.now();
 
-    const landingFeature = {
-      type: "Feature",
-      geometry: { type: "Point", coordinates: [latlng.lng, latlng.lat] },
-      properties: { type: "landing", id: landingId, locationName }
-    };
+ const landingFeature = {
+  type: "Feature",
+  geometry: { type: "Point", coordinates: [latlng.lng, latlng.lat] },
+  properties: { type: "landing", id: landingId }
+};
+
 
     try {
       await axios.post('https://e-38.onrender.com/api/update-invasion', {

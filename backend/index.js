@@ -355,14 +355,13 @@ app.post('/api/create-fighters', async (req, res) => {
   }
 
   fighters.push(...newFighters);
+  takila.showFightersOut = true; // ✅ מונע שליחה חוזרת
+
+  console.log(`✅ Fighters created for takila ${takila.id} targeting alien ${alien.id}`);
+
   res.status(201).json({ fighters: newFighters });
 });
 
-app.delete('/api/takilas', (req, res) => {
-  takilas = [];
-  fighters = [];
-  res.json({ message: '✅ Takilas cleared' });
-});
 
 app.delete('/api/clear-all', (req, res) => {
   landings = [];

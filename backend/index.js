@@ -326,33 +326,21 @@ app.post('/api/create-fighters', async (req, res) => {
     return res.status(404).json({ error: 'Takila or alien not found' });
   }
 
-  const fighterCount = 4;
+  const modes = ['forward', 'back', 'left', 'right'];
   const newFighters = [];
 
-  for (let i = 0; i < fighterCount; i++) {
-    try {
-      const response = await axios.get(`http://router.project-osrm.org/route/v1/driving/${takila.lng},${takila.lat};${alien.lng},${alien.lat}?overview=full&geometries=polyline`);
-      const coordinates = polyline.decode(response.data.routes[0].geometry);
-      const route = coordinates.map(coord => [coord[0], coord[1]]); // [lat, lng]
-
-      newFighters.push({
-        id: Date.now() + Math.random(),
-        type: 'fighter',
-        lat: takila.lat,
-        lng: takila.lng,
-        homeLat: takila.lat,
-        homeLng: takila.lng,
-        takilaCode: takila.takilaCode,
-        phase: 'exit',
-        route,
-        positionIdx: 0,
-        lastUpdated: Date.now()
-      });
-
-    } catch (error) {
-      console.error('❌ Failed to fetch route for fighter:', error.message);
-    }
+  for (let i = 0; i < 4; i++) {
+    const fighter = createSingleFighter(takila, alien, modes[i]);
+    newFighters.push(fighter);
   }
+
+  fighters.push(...newFighters);
+  takila.showFightersOut = true;
+
+  console.log(`✅ Created ${newFighters.length} fighters for takila ${takila.id}`);
+
+  res.status(201).json({ fighters: newFighters });
+});
 
   fighters.push(...newFighters);
   takila.showFightersOut = true; // ✅ מונע שליחה חוזרת

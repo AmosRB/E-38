@@ -1,10 +1,23 @@
-// ✅ BottomBar.js מתוקן - כפתורים מעוצבים ואייקון כדור הארץ מסתובב
+// ✅ BottomBar.js מתוקן - חלון צף בתחתית עם עיצוב מקורי
 
 import React from 'react';
 
 export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
   return (
-    <div className="bottom-bar" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: 'black', color: 'white', height: '50px', fontSize: '16px' }}>
+    <div className="bottom-bar" style={{
+      display: 'flex',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      background: 'black',
+      color: 'white',
+      height: '50px',
+      fontSize: '16px',
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1000
+    }}>
 
       {/* CALLBACK כפתור */}
       <button onClick={onCallback} style={{
@@ -20,7 +33,7 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         boxShadow: '0 0 8px #00ccff',
         transition: '0.3s'
       }}>
-        CALLBACK 📞
+        RECALL
       </button>
 
       {/* קאונטר טקסט עם כדור הארץ מסתובב */}

@@ -91,6 +91,33 @@ function createSingleFighter(takila, targetAlien, mode) {
   };
 }
 
+app.post('/api/update-invasion', (req, res) => {
+  const { features } = req.body;
+  const now = Date.now();
+
+  const newLandings = features.filter(f => f.properties?.type === 'landing');
+
+  newLandings.forEach(l => {
+    const id = l.properties.id;
+    const exists = landings.find(existing => existing.id === id);
+    if (!exists) {
+      const landingCode = String.fromCharCode(65 + (landings.length % 26));
+      landings.push({
+        id,
+        lat: l.geometry.coordinates[1],
+        lng: l.geometry.coordinates[0],
+        locationName: l.properties.locationName || 'Unknown',
+        createdAt: new Date().toISOString(),
+        landingCode,
+        lastUpdated: now
+      });
+    }
+  });
+
+  res.json({ message: '✅ Landings updated successfully' });
+});
+
+
 app.post('/api/create-fighters', async (req, res) => {
   const { takilaId, targetAlienId } = req.body;
   const takila = takilas.find(t => t.id === takilaId);

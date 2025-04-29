@@ -1,29 +1,21 @@
-// ✅ App.js חדש: מפה במסך מלא עם Navbar ו-BottomBar צפים
-
 import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import MapView from './components/MapView';
-import InvasionSync from './components/InvasionSync';
-import BottomBar from './components/BottomBar';
+import './App.css';
 import axios from 'axios';
-import FighterManager from './components/FighterManager';
-import BattleManager from './components/BattleManager';
-import DefenseManager from './components/DefenseManager';
-import ExplosionManager from './components/ExplosionManager';
-import FighterMovementManager from './components/FighterMovementManager';
-import ConfirmDialog from './components/ConfirmDialog';
-import ShotManager from './components/ShotManager';
-
-const center = [31.5, 34.8];
-
-const getNearestTownName = async (lat, lng) => {
-  try {
-    const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-    return res.data.address.town || res.data.address.city || res.data.address.village || "Unknown";
-  } catch {
-    return "Unknown";
-  }
-};
+import Navbar from './Navbar';
+import BottomBar from './BottomBar';
+import MapView from './MapView';
+import SidePanelLeft from './SidePanelLeft';
+import InvasionSync from './InvasionSync';
+import AlienManager from './AlienManager';
+import TakilaManager from './TakilaManager';
+import FighterManager from './FighterManager';
+import ShotManager from './ShotManager';
+import ExplosionManager from './ExplosionManager';
+import DefenseManager from './DefenseManager';
+import FighterMovementManager from './FighterMovementManager';
+import BattleManager from './BattleManager';
+import ConfirmDialog from './ConfirmDialog';
+import getNearestTownName from './utils/getNearestTownName';
 
 export default function App() {
   const [landings, setLandings] = useState([]);
@@ -31,12 +23,14 @@ export default function App() {
   const [takilas, setTakilas] = useState([]);
   const [fighters, setFighters] = useState([]);
   const [shots, setShots] = useState([]);
+  const [explosions, setExplosions] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [createMode, setCreateMode] = useState(false);
   const [createTakilaMode, setCreateTakilaMode] = useState(false);
   const [cursorStyle, setCursorStyle] = useState("default");
-  const [explosions, setExplosions] = useState([]);
-  const [showConfirmDeleteTakilas, setShowConfirmDeleteTakilas] = useState(false);
   const [showConfirmDeleteAll, setShowConfirmDeleteAll] = useState(false);
+  const [showConfirmDeleteTakilas, setShowConfirmDeleteTakilas] = useState(false);
 
   const handleMapClick = async (latlng) => {
     if (createTakilaMode) {
@@ -125,56 +119,47 @@ export default function App() {
   };
 
   return (
-    <div style={{ position: 'relative', height: '100vh', width: '100vw', cursor: cursorStyle }}>
-      <ShotManager fighters={fighters} aliens={aliens} setAliens={setAliens} setExplosions={setExplosions} setFighters={setFighters}>
-        {(shots) => (
-          <MapView
-            center={center}
-            landings={landings}
-            aliens={aliens}
-            takilas={takilas}
-            fighters={fighters}
-            explosions={explosions}
-            shots={shots}
-            onMapClick={handleMapClick}
-          />
-        )}
-      </ShotManager>
+    <div className="App" style={{ cursor: cursorStyle }}>
 
-      <Navbar
-        landingCount={landings.length}
-        alienCount={aliens.length}
-        onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
-        onRequestClearAll={() => { setShowConfirmDeleteAll(true); }}
-      />
+      <div className="navbar">
+        <Navbar
+          landingCount={landings.length}
+          alienCount={aliens.length}
+          onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
+          onRequestClearAll={() => setShowConfirmDeleteAll(true)}
+        />
+      </div>
 
-      <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
+      <div className="sidepanel">
+        <SidePanelLeft logItems={[]} onDelete={() => {}} />
+      </div>
 
-      <InvasionSync
-        landings={landings}
-        aliens={aliens}
-        setLandings={setLandings}
-        setAliens={setAliens}
-        setTakilas={setTakilas}
-        setFighters={setFighters}
-        setShots={setShots}
-        setExplosions={setExplosions}
-      />
+      <div className="map">
+        <ShotManager
+          fighters={fighters}
+          aliens={aliens}
+          setAliens={setAliens}
+          setExplosions={setExplosions}
+          setFighters={setFighters}
+        >
+          {(shots) => (
+            <MapView
+              center={[32.08, 34.78]}
+              landings={landings}
+              aliens={aliens}
+              takilas={takilas}
+              fighters={fighters}
+              explosions={explosions}
+              shots={shots}
+              onMapClick={handleMapClick}
+            />
+          )}
+        </ShotManager>
+      </div>
 
-      <BattleManager
-        fighters={fighters}
-        aliens={aliens}
-        landings={landings}
-        setAliens={setAliens}
-        setFighters={setFighters}
-        setShots={setShots}
-        setExplosions={setExplosions}
-      />
-
-      <FighterManager takilas={takilas} aliens={aliens} />
-      <DefenseManager fighters={fighters} aliens={aliens} setFighters={setFighters} setExplosions={setExplosions} />
-      <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
-      <FighterMovementManager fighters={fighters} setFighters={setFighters} aliens={aliens} setTakilas={setTakilas} />
+      <div className="bottombar">
+        <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
+      </div>
 
       {showConfirmDeleteTakilas && (
         <ConfirmDialog
@@ -191,6 +176,35 @@ export default function App() {
           onCancel={() => setShowConfirmDeleteAll(false)}
         />
       )}
+
+      <InvasionSync
+        landings={landings}
+        aliens={aliens}
+        setLandings={setLandings}
+        setAliens={setAliens}
+        setTakilas={setTakilas}
+        setFighters={setFighters}
+        setShots={setShots}
+        setExplosions={setExplosions}
+        isDeleting={isDeleting}
+      />
+
+      <BattleManager
+        fighters={fighters}
+        aliens={aliens}
+        landings={landings}
+        setAliens={setAliens}
+        setFighters={setFighters}
+        setShots={setShots}
+        setExplosions={setExplosions}
+      />
+
+      <AlienManager aliens={aliens} setAliens={setAliens} />
+      <TakilaManager takilas={takilas} setTakilas={setTakilas} />
+      <FighterManager takilas={takilas} aliens={aliens} />
+      <DefenseManager fighters={fighters} aliens={aliens} setFighters={setFighters} setExplosions={setExplosions} />
+      <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
+      <FighterMovementManager fighters={fighters} setFighters={setFighters} aliens={aliens} setTakilas={setTakilas} />
     </div>
   );
-}
+} 

@@ -117,19 +117,7 @@ export default function App() {
   };
 
   return (
-   <div className="app-layout" style={{ cursor: cursorStyle }}>
-
-
-      <div className="navbar">
-        <Navbar
-          landingCount={landings.length}
-          alienCount={aliens.length}
-          onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
-          onRequestClearAll={() => setShowConfirmDeleteAll(true)}
-        />
-      </div>
-
-      <div className="map">
+      <div className="map-container">
         <ShotManager
           fighters={fighters}
           aliens={aliens}
@@ -152,6 +140,15 @@ export default function App() {
         </ShotManager>
       </div>
 
+      <div className="navbar">
+        <Navbar
+          landingCount={landings.length}
+          alienCount={aliens.length}
+          onActivateCreate={() => { setCreateMode(true); setCursorStyle("crosshair"); }}
+          onRequestClearAll={() => setShowConfirmDeleteAll(true)}
+        />
+      </div>
+
       <div className="bottombar">
         <BottomBar onJump={handleJump} onCallback={handleCallback} fighters={fighters} takilas={takilas} />
       </div>
@@ -160,9 +157,10 @@ export default function App() {
         <ConfirmDialog
           message="Are you sure you want to delete all Takilas?"
           onConfirm={handleConfirmDeleteTakilas}
-         onCancel={() => setShowConfirmDeleteTakilas(false)}
+          onCancel={() => setShowConfirmDeleteTakilas(false)}
         />
       )}
+
 
   {showConfirmDeleteAll && (
   <ConfirmDialog

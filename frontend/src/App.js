@@ -1,4 +1,4 @@
-// ✅ App.js מתוקן עם תמיכה במחיקת הכל (CLEAR ALL)
+// ✅ App.js מתוקן לגמרי עם handleMapClick תקין ובלי שגיאות בנייה
 
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -38,56 +38,54 @@ export default function App() {
   const [showConfirmDeleteTakilas, setShowConfirmDeleteTakilas] = useState(false);
   const [showConfirmDeleteAll, setShowConfirmDeleteAll] = useState(false);
 
- const handleMapClick = async (latlng) => {
-  if (createTakilaMode) {
-    setCreateTakilaMode(false);
+  const handleMapClick = async (latlng) => {
+    if (createTakilaMode) {
+      setCreateTakilaMode(false);
+      setCursorStyle("default");
+      try {
+        await axios.post('https://e-38.onrender.com/api/create-takila', { lat: latlng.lat, lng: latlng.lng });
+        console.log('🚙 Takila created at', latlng.lat, latlng.lng);
+      } catch (err) {
+        console.error('❌ Failed to create takila:', err.message);
+      }
+      return;
+    }
+
+    if (!createMode) return;
+    setCreateMode(false);
     setCursorStyle("default");
+
+    const locationName = await getNearestTownName(latlng.lat, latlng.lng);
+    const landingId = Date.now();
+
+    const landingFeature = {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [latlng.lng, latlng.lat] },
+      properties: { type: "landing", id: landingId, locationName }
+    };
+
     try {
-      await axios.post('https://e-38.onrender.com/api/create-takila', { lat: latlng.lat, lng: latlng.lng });
-      console.log('🚙 Takila created at', latlng.lat, latlng.lng);
-    } catch (err) {
-      console.error('❌ Failed to create takila:', err.message);
-    }
-    return; // ✅ החזר בתוך ה- if
-  }
-
-  // המשך הפעולה הרגילה אם לא בטקילה-מוד
-  if (!createMode) return;
-  setCreateMode(false);
-  setCursorStyle("default");
-
-  const locationName = await getNearestTownName(latlng.lat, latlng.lng);
-  const landingId = Date.now();
-
-  const landingFeature = {
-    type: "Feature",
-    geometry: { type: "Point", coordinates: [latlng.lng, latlng.lat] },
-    properties: { type: "landing", id: landingId, locationName }
-  };
-
-  try {
-    await axios.post('https://e-38.onrender.com/api/update-invasion', {
-      type: "FeatureCollection",
-      features: [landingFeature]
-    });
-    console.log('🛸 Landing created on server');
-
-    const directions = [0, 45, 90, 135, 180, 225, 270, 315];
-    for (let index = 0; index < directions.length; index++) {
-      const alienCode = String.fromCharCode(65 + (landings.length % 26)) + (index + 1);
-      await axios.post('https://e-38.onrender.com/api/create-alien', {
-        lat: latlng.lat,
-        lng: latlng.lng,
-        landingId,
-        alienCode
+      await axios.post('https://e-38.onrender.com/api/update-invasion', {
+        type: "FeatureCollection",
+        features: [landingFeature]
       });
-      console.log(`👽 Alien ${alienCode} created`);
-    }
-  } catch (err) {
-    console.error('❌ Failed to create landing or aliens:', err.message);
-  }
-};
+      console.log('🛸 Landing created on server');
 
+      const directions = [0, 45, 90, 135, 180, 225, 270, 315];
+      for (let index = 0; index < directions.length; index++) {
+        const alienCode = String.fromCharCode(65 + (landings.length % 26)) + (index + 1);
+        await axios.post('https://e-38.onrender.com/api/create-alien', {
+          lat: latlng.lat,
+          lng: latlng.lng,
+          landingId,
+          alienCode
+        });
+        console.log(`👽 Alien ${alienCode} created`);
+      }
+    } catch (err) {
+      console.error('❌ Failed to create landing or aliens:', err.message);
+    }
+  };
 
   const handleJump = () => {
     setCreateTakilaMode(true);

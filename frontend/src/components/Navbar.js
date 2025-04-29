@@ -21,12 +21,12 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
           boxShadow: '0 0 8px #ff0033',
           transition: '0.3s'
         }}>
-          ❌ DELETE ALL
+          ❌ DEL. ALL
         </button>
       </div>
 
       {/* טקסט מרכזי - ספירות עם כדור הארץ מסתובב */}
-      <div style={{ display: 'flex', alignItems: 'center', fontSize: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', fontSize: '20px' }}>
         <span style={{ marginRight: '10px' }}>🛸 {landingCount}</span>
         <span style={{
           display: 'inline-block',
@@ -53,7 +53,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
           boxShadow: '0 0 8px #cc66ff',
           transition: '0.3s'
         }}>
-          ⚡ CREATE LANDING
+          ⚡ LANDING
         </button>
       </div>
 

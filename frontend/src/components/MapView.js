@@ -1,4 +1,4 @@
-// ✅ MapView.js מעודכן - עם הגנה על route ו-positionIdx
+// ✅ MapView.js מעודכן - כולל הצגת יריות ופיצוצים
 
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMapEvents } from 'react-leaflet';
@@ -37,7 +37,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
         {/* 🛸 נחיתות */}
         {landings.map(l => (
           <Marker key={`landing-${l.id}`} position={[l.lat, l.lng]} icon={createEmojiIcon('🛸', l.landingCode)}>
-            <Popup>{l.locationName}</Popup>
+            <Popup>{l.name}</Popup>
           </Marker>
         ))}
 
@@ -78,31 +78,25 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
             >
               <Popup>{`Fighter ${f.fighterCode}`}</Popup>
             </Marker>
-            {f.route && f.route.length > 1 && (
-              <Polyline
-                positions={f.route.map(point => [point[0], point[1]])}
-                color="blue"
-              />
-            )}
           </React.Fragment>
         ))}
 
         {/* 🔫 יריות */}
-        {shots && shots.map((shot, idx) => (
+        {shots.map((s, i) => (
           <Polyline
-            key={`shot-${idx}`}
-            positions={[shot.from, shot.to]}
+            key={`shot-${i}`}
+            positions={[s.from, s.to]}
             color="red"
             weight={3}
           />
         ))}
 
         {/* 💥 פיצוצים */}
-        {explosions && explosions.map((exp, idx) => (
+        {explosions.map((e, i) => (
           <Marker
-            key={`explosion-${idx}`}
-            position={[exp.lat, exp.lng]}
-            icon={createEmojiIcon(exp.type === 'explosion' ? '💥' : '🧎‍♂️❌')}
+            key={`explosion-${i}`}
+            position={[e.lat, e.lng]}
+            icon={createEmojiIcon('💥')}
           />
         ))}
 

@@ -1,4 +1,4 @@
-// ✅ MapView.js מעודכן - כולל הצגת יריות ופיצוצים
+// ✅ MapView.js מושלם: כולל WAITING, יריות ופיצוצים
 
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMapEvents } from 'react-leaflet';
@@ -7,7 +7,7 @@ import 'leaflet/dist/leaflet.css';
 
 const createEmojiIcon = (emoji, label = '', extraHtml = '') => L.divIcon({
   html: `<div style="display: flex; flex-direction: column; align-items: center; font-size: 24px; position: relative;">
-    ${extraHtml ? `<div style="margin-bottom: 0px;">${extraHtml}</div>` : ''}
+    ${extraHtml ? `<div style="color: #cc66ff; font-weight: bold; font-size: 12px; margin-bottom: 2px;">${extraHtml}</div>` : ''}
     <div>${emoji}</div>
     ${label ? `<div style="font-size: 10px; color: white; background: black; border-radius: 4px; padding: 0 2px; margin-top: 2px;">${label}</div>` : ''}
   </div>`,
@@ -27,17 +27,14 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
   return (
     <>
       <MapContainer center={center} zoom={12} style={{ height: '100vh', width: '100%' }}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
 
         <ClickHandler onMapClick={onMapClick} />
 
         {/* 🛸 נחיתות */}
         {landings.map(l => (
           <Marker key={`landing-${l.id}`} position={[l.lat, l.lng]} icon={createEmojiIcon('🛸', l.landingCode)}>
-            <Popup>{l.name}</Popup>
+            <Popup>{l.locationName}</Popup>
           </Marker>
         ))}
 
@@ -51,7 +48,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
               >
                 <Popup>{`Alien ${a.alienCode}`}</Popup>
               </Marker>
-              <Polyline positions={a.route} color="purple" />
+              <Polyline positions={a.route.map(p => [p[0], p[1]])} color="purple" />
             </React.Fragment>
           )
         ))}
@@ -62,7 +59,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
             <Marker
               key={`takila-${t.id}`}
               position={[t.route[t.positionIdx][0], t.route[t.positionIdx][1]]}
-              icon={createEmojiIcon('🚙', t.takilaCode)}
+              icon={createEmojiIcon('🚙', t.takilaCode, t.showFightersOut ? 'WAITING' : '')}
             >
               <Popup>{`Takila ${t.takilaCode}`}</Popup>
             </Marker>
@@ -71,23 +68,21 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
 
         {/* 🧍 לוחמים */}
         {fighters.map(f => (
-          <React.Fragment key={`fighter-${f.id}`}>
-            <Marker
-              position={[f.lat, f.lng]}
-              icon={createEmojiIcon('🧍', f.fighterCode)}
-            >
-              <Popup>{`Fighter ${f.fighterCode}`}</Popup>
-            </Marker>
-          </React.Fragment>
+          <Marker
+            key={`fighter-${f.id}`}
+            position={[f.lat, f.lng]}
+            icon={createEmojiIcon('🧍', f.phase)}
+          >
+            <Popup>{`Fighter`}</Popup>
+          </Marker>
         ))}
 
         {/* 🔫 יריות */}
         {shots.map((s, i) => (
           <Polyline
             key={`shot-${i}`}
-            positions={[s.from, s.to]}
-            color="red"
-            weight={3}
+            positions={[[s.from[0], s.from[1]], [s.to[0], s.to[1]]]} 
+            pathOptions={{ color: 'red', weight: 3 }}
           />
         ))}
 

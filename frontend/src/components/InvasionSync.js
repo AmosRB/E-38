@@ -20,7 +20,7 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           landingCode: f.properties.landingCode || '?'
         }));
 
-        const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
+const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
   id: f.properties.id,
   route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
   positionIdx: 0,

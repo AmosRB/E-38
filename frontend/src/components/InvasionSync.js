@@ -1,3 +1,5 @@
+// ✅ InvasionSync.js - גרסה מעודכנת עם קליטה נכונה של route ו-positionIdx
+
 import { useEffect } from 'react';
 import axios from 'axios';
 
@@ -20,15 +22,13 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           landingCode: f.properties.landingCode || '?'
         }));
 
-const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
-  id: f.properties.id,
-  route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
-  positionIdx: f.properties.positionIdx || 0,
-  landingId: f.properties.landingId,
-  alienCode: f.properties.alienCode || '?'
-}));
-
-
+        const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f => ({
+          id: f.properties.id,
+          route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
+          positionIdx: f.properties.positionIdx || 0,
+          landingId: f.properties.landingId,
+          alienCode: f.properties.alienCode || '?'
+        }));
 
         const remoteTakilas = features.filter(f => f.properties?.type === 'takila').map(f => ({
           id: f.properties.id,
@@ -37,6 +37,8 @@ const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f 
           lastUpdated: f.properties.lastUpdated,
           direction: f.properties.direction || Math.random() * 360,
           takilaCode: f.properties.takilaCode || '',
+          positionIdx: f.properties.positionIdx || 0,
+          route: f.properties.route || [[f.geometry.coordinates[1], f.geometry.coordinates[0]], [f.geometry.coordinates[1], f.geometry.coordinates[0]]],
           showFightersOut: f.properties.showFightersOut || false
         }));
 
@@ -49,76 +51,10 @@ const remoteAliens = features.filter(f => f.properties?.type === 'alien').map(f 
           fighterCode: f.properties.fighterCode || ''
         }));
 
-        // 🛠️ מיזוג landings
-        setLandings(prev => {
-          const byId = Object.fromEntries(prev.map(l => [l.id, l]));
-          remoteLandings.forEach(remote => {
-            byId[remote.id] = { ...byId[remote.id], ...remote };
-          });
-          return Object.values(byId);
-        });
-
-        // 🛠️ מיזוג aliens - לא מוחקים חייזרים קיימים שלא הופיעו בשרת
-        setAliens(prev => {
-          const prevIds = new Set(prev.map(a => a.id));
-          const remoteIds = new Set(remoteAliens.map(a => a.id));
-
-          const updatedAliens = prev.map(a => {
-            const remote = remoteAliens.find(r => r.id === a.id);
-            if (remote) {
-              return {
-                ...a,
-                landingId: remote.landingId,
-                alienCode: remote.alienCode || a.alienCode,
-              };
-            }
-            return a;
-          });
-
-          const newAliens = remoteAliens.filter(r => !prevIds.has(r.id)).map(r => ({
-            id: r.id,
-            route: [r.singlePoint, r.singlePoint],
-            positionIdx: 0,
-            landingId: r.landingId,
-            alienCode: r.alienCode
-          }));
-
-          return [...updatedAliens, ...newAliens];
-        });
-
-        // 🛠️ מיזוג fighters - לא מוחקים לוחמים קיימים שלא הופיעו בשרת
-        setFighters(prev => {
-          const prevIds = new Set(prev.map(f => f.id));
-          const remoteIds = new Set(remoteFighters.map(f => f.id));
-
-          const updatedFighters = prev.map(f => {
-            const remote = remoteFighters.find(r => r.id === f.id);
-            if (remote) {
-              return {
-                ...f,
-                lat: remote.lat,
-                lng: remote.lng,
-                lastUpdated: remote.lastUpdated || f.lastUpdated,
-                takilaCode: remote.takilaCode || f.takilaCode,
-                fighterCode: remote.fighterCode || f.fighterCode
-              };
-            }
-            return f;
-          });
-
-          const newFighters = remoteFighters.filter(r => !prevIds.has(r.id)).map(r => ({
-            id: r.id,
-            lat: r.lat,
-            lng: r.lng,
-            lastUpdated: r.lastUpdated,
-            takilaCode: r.takilaCode,
-            fighterCode: r.fighterCode
-          }));
-
-          return [...updatedFighters, ...newFighters];
-        });
-
+        setLandings(remoteLandings);
+        setAliens(remoteAliens);
         setTakilas(remoteTakilas);
+        setFighters(remoteFighters);
 
       } catch (err) {
         console.error("❌ Failed to sync invasion:", err.message);

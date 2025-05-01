@@ -69,9 +69,18 @@ function createSingleFighter(takila, mode) {
 }
 
 setInterval(async () => {
-  const now = Date.now();
-  shots = [];
-  explosions = [];
+const now = Date.now();
+shots = shots.filter(s => now - s.timestamp < 500); // שמור יריות 0.5 שניות
+explosions = explosions.filter(e => now - e.timestamp < 2000); // שמור פיצוצים 2 שניות
+  for (const a of aliens) {
+  if (Math.random() < 0.01) { // 1% סיכוי בכל tick
+    explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
+    const idx = aliens.findIndex(x => x.id === a.id);
+    if (idx !== -1) aliens.splice(idx, 1);
+  }
+}
+
+
 
   for (const f of fighters) {
     f.lastUpdated = now;

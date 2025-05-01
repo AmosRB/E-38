@@ -72,13 +72,31 @@ setInterval(async () => {
 const now = Date.now();
 shots = shots.filter(s => now - s.timestamp < 500); // שמור יריות 0.5 שניות
 explosions = explosions.filter(e => now - e.timestamp < 2000); // שמור פיצוצים 2 שניות
-  for (const a of aliens) {
-  if (Math.random() < 0.01) { // 1% סיכוי בכל tick
+for (const a of aliens) {
+  if (Math.random() < 0.01) {
     explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
     const idx = aliens.findIndex(x => x.id === a.id);
     if (idx !== -1) aliens.splice(idx, 1);
+    continue; // דלג הלאה כי החייזר נמחק
+  }
+
+  if (a.route && a.positionIdx < a.route.length - 1) {
+    a.positionIdx++;
+    a.lat = a.route[a.positionIdx][0];
+    a.lng = a.route[a.positionIdx][1];
+  } else {
+    const from = a.route[a.route.length - 1];
+    const angle = Math.random() * 360;
+    const to = [
+      from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
+      from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
+    ];
+    const newRoute = await getRouteServer(from, to);
+    a.route = newRoute;
+    a.positionIdx = 0;
   }
 }
+
 
 
 

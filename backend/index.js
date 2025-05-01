@@ -102,7 +102,7 @@ setInterval(async () => {
 
   for (const f of fighters) {
     if (!f.lastMoveTime) f.lastMoveTime = now;
-    const interval = 5142; // כ־7 קמ"ש
+    const interval = 5142; // מהירות 7 קמ"ש
 
     if (now - f.lastMoveTime >= interval) {
       if (f.phase === 'exit') {
@@ -120,8 +120,17 @@ setInterval(async () => {
 
           if (dist < 0.3) {
             shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
+            // סימולציה של פגיעת חייזר
+            target.hitCount = (target.hitCount || 0) + 1;
+            if (target.hitCount >= 2) {
+              aliens = aliens.filter(a => a.id !== target.id);
+              f.phase = 'return';
+              const takila = takilas.find(t => t.takilaCode === f.takilaCode);
+              f.route = await getRouteServer([f.lat, f.lng], [takila.lat, takila.lng]);
+              f.positionIdx = 0;
+              continue;
+            }
           }
-
           f.route = await getRouteServer([f.lat, f.lng], [target.lat, target.lng]);
           f.positionIdx = 0;
         } else {
@@ -137,6 +146,7 @@ setInterval(async () => {
           if (idx !== -1) fighters.splice(idx, 1);
           const takila = takilas.find(t => t.takilaCode === f.takilaCode);
           if (takila) takila.showFightersOut = false;
+          continue;
         }
       }
 
@@ -148,7 +158,7 @@ setInterval(async () => {
     }
   }
 
-  // לולאת חייזרים (נשארת כמו שהיא)
+  // תזוזת חייזרים
   for (const a of aliens) {
     if (a.route && a.positionIdx < a.route.length - 1) {
       a.positionIdx++;
@@ -165,6 +175,7 @@ setInterval(async () => {
     }
   }
 
+  // ירי אקראי מטקילות ונחיתות
   for (const t of takilas) {
     if (Math.random() < 0.05) {
       const randomLat = t.lat + (Math.random() - 0.5) * 0.01;
@@ -172,7 +183,6 @@ setInterval(async () => {
       shots.push({ from: [t.lat, t.lng], to: [randomLat, randomLng], timestamp: now, type: 'takila' });
     }
   }
-
   for (const l of landings) {
     if (Math.random() < 0.05) {
       const randomLat = l.lat + (Math.random() - 0.5) * 0.01;
@@ -181,6 +191,7 @@ setInterval(async () => {
     }
   }
 }, 1000);
+
 
 
 async function getRouteServer(from, to) {

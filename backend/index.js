@@ -102,29 +102,14 @@ setInterval(async () => {
 
   for (const f of fighters) {
     if (!f.lastMoveTime) f.lastMoveTime = now;
-    const interval = 5142; // כ־7 קמ״ש
+    const interval = 5142; // כ־7 קמ"ש
 
     if (now - f.lastMoveTime >= interval) {
       if (f.phase === 'exit') {
         f.positionIdx++;
         if (f.positionIdx >= f.route.length) {
-          f.phase = 'explore';
-          f.route = generateRandomRoute(f.lat, f.lng);
-          f.positionIdx = 0;
-        }
-      } else if (f.phase === 'explore') {
-        const target = findClosestAlien(f);
-        if (target) {
           f.phase = 'chase';
-          f.targetAlienId = target.id;
-          f.route = await getRouteServer([f.lat, f.lng], [target.lat, target.lng]);
           f.positionIdx = 0;
-        } else {
-          f.positionIdx++;
-          if (f.positionIdx >= f.route.length) {
-            f.route = generateRandomRoute(f.lat, f.lng);
-            f.positionIdx = 0;
-          }
         }
       } else if (f.phase === 'chase') {
         const target = aliens.find(a => a.id === f.targetAlienId);
@@ -132,11 +117,13 @@ setInterval(async () => {
           const dx = f.lat - target.lat;
           const dy = f.lng - target.lng;
           const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+
           if (dist < 0.3) {
-            // 🔥 ירי ודאי (ללא סיכויים)
             shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
           }
+
           f.route = await getRouteServer([f.lat, f.lng], [target.lat, target.lng]);
+          f.positionIdx = 0;
         } else {
           f.phase = 'return';
           const takila = takilas.find(t => t.takilaCode === f.takilaCode);
@@ -152,12 +139,16 @@ setInterval(async () => {
           if (takila) takila.showFightersOut = false;
         }
       }
-      f.lat = f.route[f.positionIdx][0];
-      f.lng = f.route[f.positionIdx][1];
+
+      if (f.route && f.route[f.positionIdx]) {
+        f.lat = f.route[f.positionIdx][0];
+        f.lng = f.route[f.positionIdx][1];
+      }
       f.lastMoveTime = now;
     }
   }
 
+  // לולאת חייזרים (נשארת כמו שהיא)
   for (const a of aliens) {
     if (a.route && a.positionIdx < a.route.length - 1) {
       a.positionIdx++;
@@ -166,10 +157,7 @@ setInterval(async () => {
     } else {
       const from = a.route[a.route.length - 1];
       const angle = Math.random() * 360;
-      const to = [
-        from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
-        from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
-      ];
+      const to = [from[0] + 0.05 * Math.cos(angle * Math.PI / 180), from[1] + 0.05 * Math.sin(angle * Math.PI / 180)];
       const newRoute = await getRouteServer(from, to);
       a.route = newRoute;
       a.positionIdx = 0;

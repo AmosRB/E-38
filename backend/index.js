@@ -71,7 +71,7 @@ setInterval(async () => {
   const now = Date.now();
   shots = shots.filter(s => now - s.timestamp < 500);
   explosions = explosions.filter(e => now - e.timestamp < 2000);
-  explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
+ 
 
 
   for (const f of fighters) {
@@ -96,6 +96,7 @@ setInterval(async () => {
     const newRoute = await getRouteServer(from, to);
     a.route = newRoute;
     a.positionIdx = 0;
+    explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
   }
 }
 

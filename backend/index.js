@@ -118,7 +118,10 @@ setInterval(async () => {
           const dx = f.lat - target.lat;
           const dy = f.lng - target.lng;
           const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-            console.log(`Fighter distance to Alien: ${distanceKm} km`); // הדפסת המרחק
+
+           console.log(`Distance from Fighter to Alien: ${distanceKm} km`); // בדיקת המרחק בק"מ
+
+          
           if (dist < 0.3) {
             shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
             target.hitCount = (target.hitCount || 0) + 1;

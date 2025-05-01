@@ -251,20 +251,19 @@ app.get('/api/invasion', (req, res) => {
   res.json({ type: 'FeatureCollection', features: [...landingFeatures, ...alienFeatures, ...takilaFeatures, ...fighterFeatures, ...explosionFeatures, ...shotFeatures] });
 });
 
-
+// ✅ מוחק רק נחיתות וחייזרים
 app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];
   aliens = [];
   res.json({ message: '✅ Landings and aliens cleared' });
 });
 
+// ✅ מוחק רק טקילות ולוחמים
 app.delete('/api/clear-takilas-fighters', (req, res) => {
   takilas = [];
   fighters = [];
   res.json({ message: '✅ Takilas and fighters cleared' });
 });
-
-
 
 // ✅ הגשת קבצי React
 app.use(express.static(path.join(__dirname, '../frontend/build')));

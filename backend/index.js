@@ -102,7 +102,7 @@ setInterval(async () => {
 
   for (const f of fighters) {
     if (!f.lastMoveTime) f.lastMoveTime = now;
-    const interval = 5142; // כ־7 קמ"ש
+    const interval = 5142; // כ־7 קמ״ש
 
     if (now - f.lastMoveTime >= interval) {
       if (f.phase === 'exit') {
@@ -133,6 +133,7 @@ setInterval(async () => {
           const dy = f.lng - target.lng;
           const dist = Math.sqrt(dx * dx + dy * dy) * 111;
           if (dist < 0.3) {
+            // 🔥 ירי ודאי (ללא סיכויים)
             shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
           }
           f.route = await getRouteServer([f.lat, f.lng], [target.lat, target.lng]);
@@ -156,7 +157,43 @@ setInterval(async () => {
       f.lastMoveTime = now;
     }
   }
+
+  for (const a of aliens) {
+    if (a.route && a.positionIdx < a.route.length - 1) {
+      a.positionIdx++;
+      a.lat = a.route[a.positionIdx][0];
+      a.lng = a.route[a.positionIdx][1];
+    } else {
+      const from = a.route[a.route.length - 1];
+      const angle = Math.random() * 360;
+      const to = [
+        from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
+        from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
+      ];
+      const newRoute = await getRouteServer(from, to);
+      a.route = newRoute;
+      a.positionIdx = 0;
+      explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: now });
+    }
+  }
+
+  for (const t of takilas) {
+    if (Math.random() < 0.05) {
+      const randomLat = t.lat + (Math.random() - 0.5) * 0.01;
+      const randomLng = t.lng + (Math.random() - 0.5) * 0.01;
+      shots.push({ from: [t.lat, t.lng], to: [randomLat, randomLng], timestamp: now, type: 'takila' });
+    }
+  }
+
+  for (const l of landings) {
+    if (Math.random() < 0.05) {
+      const randomLat = l.lat + (Math.random() - 0.5) * 0.01;
+      const randomLng = l.lng + (Math.random() - 0.5) * 0.01;
+      shots.push({ from: [l.lat, l.lng], to: [randomLat, randomLng], timestamp: now, type: 'landing' });
+    }
+  }
 }, 1000);
+
 
 async function getRouteServer(from, to) {
   try {

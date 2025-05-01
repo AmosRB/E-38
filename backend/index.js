@@ -175,21 +175,30 @@ setInterval(async () => {
     }
   }
 
-  // ירי אקראי מטקילות ונחיתות
-  for (const t of takilas) {
-    if (Math.random() < 0.05) {
-      const randomLat = t.lat + (Math.random() - 0.5) * 0.01;
-      const randomLng = t.lng + (Math.random() - 0.5) * 0.01;
-      shots.push({ from: [t.lat, t.lng], to: [randomLat, randomLng], timestamp: now, type: 'takila' });
-    }
-  }
+  // ירי מטקילות ונחיתות
+for (const t of takilas) {
   for (const l of landings) {
-    if (Math.random() < 0.05) {
-      const randomLat = l.lat + (Math.random() - 0.5) * 0.01;
-      const randomLng = l.lng + (Math.random() - 0.5) * 0.01;
-      shots.push({ from: [l.lat, l.lng], to: [randomLat, randomLng], timestamp: now, type: 'landing' });
+    const dx = t.lat - l.lat;
+    const dy = t.lng - l.lng;
+    const dist = Math.sqrt(dx * dx + dy * dy) * 111; // המרחק בק״מ
+    if (dist <= 1.5) {
+      shots.push({
+        from: [t.lat, t.lng],
+        to: [l.lat, l.lng],
+        timestamp: now,
+        type: 'takila'
+      });
+    }
+    if (dist <= 1) {
+      shots.push({
+        from: [l.lat, l.lng],
+        to: [t.lat, t.lng],
+        timestamp: now,
+        type: 'landing'
+      });
     }
   }
+}
 }, 1000);
 
 

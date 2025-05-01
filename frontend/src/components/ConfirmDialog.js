@@ -36,7 +36,7 @@ export default function ConfirmDialog({ message, onConfirm, onCancel }) {
               cursor: 'pointer'
             }}
           >
-            אישור
+            RECALL
           </button>
           <button
             onClick={onCancel}
@@ -50,7 +50,7 @@ export default function ConfirmDialog({ message, onConfirm, onCancel }) {
               cursor: 'pointer'
             }}
           >
-            ביטול
+            STAY ALIVE
           </button>
         </div>
       </div>

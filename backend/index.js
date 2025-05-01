@@ -97,7 +97,7 @@ async function getRouteServer(from, to) {
 
 setInterval(async () => {
   const now = Date.now();
-  shots = shots.filter(s => now - s.timestamp < 500);
+  shots = shots.filter(s => now - s.timestamp < 1500);
   explosions = explosions.filter(e => now - e.timestamp < 2000);
 
   // לולאת לוחמים
@@ -118,6 +118,7 @@ setInterval(async () => {
           const dx = f.lat - target.lat;
           const dy = f.lng - target.lng;
           const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+            console.log(`Fighter distance to Alien: ${distanceKm} km`); // הדפסת המרחק
           if (dist < 0.3) {
             shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
             target.hitCount = (target.hitCount || 0) + 1;

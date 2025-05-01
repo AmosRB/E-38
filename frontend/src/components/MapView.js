@@ -77,15 +77,23 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
           </Marker>
         ))}
 
-        {/* 🔫 יריות */}
-        {shots.map((s, i) => (
-          <Polyline
-            key={`shot-${i}`}
-            positions={[[s.from[0], s.from[1]], [s.to[0], s.to[1]]]} 
-            pathOptions={{ color: 'red', weight: 3 }}
-          />
-        ))}
-
+{shots.map((s, i) => (
+  <Polyline
+    key={`shot-${i}`}
+    positions={s.geometry.coordinates.map(c => [c[1], c[0]])}
+    pathOptions={{
+      color:
+        s.properties.shotType === 'fighter'
+          ? 'red'
+          : s.properties.shotType === 'alien'
+          ? 'blue'
+          : s.properties.shotType === 'takila'
+          ? 'purple'
+          : 'green',
+      weight: 3
+    }}
+  />
+))}
         {/* 💥 פיצוצים */}
         {explosions.map((e, i) => (
           <Marker

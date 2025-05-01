@@ -100,6 +100,25 @@ for (const f of fighters) {
   }
 }
 
+  for (const t of takilas) {
+  if (t.route && t.positionIdx < t.route.length - 1) {
+    t.positionIdx++;
+    t.lat = t.route[t.positionIdx][0];
+    t.lng = t.route[t.positionIdx][1];
+  } else {
+    const from = t.route[t.route.length - 1];
+    const angle = Math.random() * 360;
+    const to = [
+      from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
+      from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
+    ];
+    const newRoute = await getRouteServer(from, to);
+    t.route = newRoute;
+    t.positionIdx = 0;
+  }
+}
+
+
 
   // לולאת חייזרים
   for (const a of aliens) {
@@ -190,6 +209,10 @@ app.post('/api/create-fighters', async (req, res) => {
   if (!takila) {
     return res.status(404).json({ error: 'Takila not found' });
   }
+
+  if (fighters.filter(f => f.takilaCode === takila.takilaCode).length >= 4) {
+  return res.status(400).json({ error: 'Takila already has 4 fighters' });
+}
 
   const modes = ['forward', 'back', 'left', 'right'];
   const newFighters = [];

@@ -73,38 +73,33 @@ setInterval(async () => {
   explosions = explosions.filter(e => now - e.timestamp < 2000);
 
   // לולאת לוחמים
-  for (const f of fighters) {
-    if (Math.random() < 0.1) {
-      const randomLat = f.lat + (Math.random() - 0.5) * 0.01;
-      const randomLng = f.lng + (Math.random() - 0.5) * 0.01;
-      shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'fighter' });
+for (const f of fighters) {
+  if (Math.random() < 0.1) {
+    const randomLat = f.lat + (Math.random() - 0.5) * 0.01;
+    const randomLng = f.lng + (Math.random() - 0.5) * 0.01;
+    shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'fighter' });
+  }
+
+  if (f.phase === 'exit') {
+    f.positionIdx++;
+    if (f.positionIdx >= f.route.length) {
+      f.route = generateRandomRoute(f.lat, f.lng);
+      f.phase = 'explore';
+      f.positionIdx = 0;
     }
-    if (f.phase === 'exit') {
-  f.positionIdx++;
-  if (f.positionIdx >= f.route.length) {
-    f.route = generateRandomRoute(f.lat, f.lng);
-    f.phase = 'explore';
-    f.positionIdx = 0;
+    f.lat = f.route[f.positionIdx][0];
+    f.lng = f.route[f.positionIdx][1];
+  } else if (f.phase === 'explore') {
+    f.positionIdx++;
+    if (f.positionIdx >= f.route.length) {
+      f.route = generateRandomRoute(f.lat, f.lng);
+      f.positionIdx = 0;
+    }
+    f.lat = f.route[f.positionIdx][0];
+    f.lng = f.route[f.positionIdx][1];
   }
-  f.lat = f.route[f.positionIdx][0];
-  f.lng = f.route[f.positionIdx][1];
-} else if (f.phase === 'explore') {
-  f.positionIdx++;
-  if (f.positionIdx >= f.route.length) {
-    f.route = generateRandomRoute(f.lat, f.lng);
-    f.positionIdx = 0;
-  }
-  f.lat = f.route[f.positionIdx][0];
-  f.lng = f.route[f.positionIdx][1];
 }
-    } else if (f.phase === 'explore') {
-      f.positionIdx++;
-      if (f.positionIdx >= f.route.length) {
-        f.route = generateRandomRoute(f.lat, f.lng);
-        f.positionIdx = 0;
-      }
-    }
-  }
+
 
   // לולאת חייזרים
   for (const a of aliens) {
@@ -257,13 +252,18 @@ app.get('/api/invasion', (req, res) => {
 });
 
 
-app.delete('/api/clear-all', (req, res) => {
+app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];
   aliens = [];
+  res.json({ message: '✅ Landings and aliens cleared' });
+});
+
+app.delete('/api/clear-takilas-fighters', (req, res) => {
   takilas = [];
   fighters = [];
-  res.json({ message: '✅ All cleared' });
+  res.json({ message: '✅ Takilas and fighters cleared' });
 });
+
 
 
 // ✅ הגשת קבצי React

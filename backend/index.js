@@ -34,6 +34,20 @@ function getTakilaCode() {
   };
   return `#${toCode(num)}`;
 }
+function generateRandomRoute(startLat, startLng) {
+  const route = [[startLat, startLng]];
+  let currentLat = startLat;
+  let currentLng = startLng;
+
+  for (let i = 0; i < 4 + Math.floor(Math.random() * 4); i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const distKm = 0.3 + Math.random() * 0.2;
+    currentLat += (distKm * Math.sin(angle)) / 111;
+    currentLng += (distKm * Math.cos(angle)) / (111 * Math.cos(currentLat * Math.PI / 180));
+    route.push([currentLat, currentLng]);
+  }
+  return route;
+}
 
 function createSingleFighter(takila, mode) {
   const startLat = takila.lat;
@@ -50,103 +64,52 @@ function createSingleFighter(takila, mode) {
     takilaCode: takila.takilaCode,
     phase: 'exit',
     lastUpdated: Date.now(),
-    fighterCode: Math.random().toString(36).substring(2, 7),
-
+    fighterCode: Math.random().toString(36).substring(2, 7)
   };
-}
-
-  function generateRandomRoute(startLat, startLng) {
-  const route = [[startLat, startLng]];
-  let currentLat = startLat;
-  let currentLng = startLng;
-
-  for (let i = 0; i < 4 + Math.floor(Math.random() * 4); i++) {
-    const angle = Math.random() * 2 * Math.PI;
-    const distKm = 0.3 + Math.random() * 0.2;
-    currentLat += (distKm * Math.sin(angle)) / 111;
-    currentLng += (distKm * Math.cos(angle)) / (111 * Math.cos(currentLat * Math.PI / 180));
-    route.push([currentLat, currentLng]);
-  }
-  return route;
 }
 
 setInterval(async () => {
   const now = Date.now();
   shots = [];
   explosions = [];
-  
-  // ✅ הוספת תנועה לטקילות
-  for (const t of takilas) {
-    if (t.showFightersOut) continue;
-    if (t.route && t.positionIdx < t.route.length - 1) {
-      t.positionIdx++;
-      t.lat = t.route[t.positionIdx][0];
-      t.lng = t.route[t.positionIdx][1];
-    } else {
-      const randLat = t.lat + (Math.random() - 0.5) * 0.1;
-      const randLng = t.lng + (Math.random() - 0.5) * 0.1;
-      const newRoute = await getRouteServer([t.lat, t.lng], [randLat, randLng]);
-      t.route = newRoute;
-      t.positionIdx = 0;
-    }
-  }
-
-  // ✅ הוספת תנועה לחייזרים
-  for (const a of aliens) {
-    if (a.route && a.positionIdx < a.route.length - 1) {
-      a.positionIdx++;
-    } else {
-      const from = a.route[a.route.length - 1];
-      const angle = Math.random() * 360;
-      const to = [
-        from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
-        from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
-      ];
-      const newRoute = await getRouteServer(from, to);
-      a.route = newRoute;
-      a.positionIdx = 0;
-    }
-  }
-
-  const alienHitMap = {};
 
   for (const f of fighters) {
-  f.lastUpdated = now;
-  if (!f.route || f.route.length === 0) continue;
-  const current = f.route[f.positionIdx];
-  if (!current) continue;
+    f.lastUpdated = now;
+    if (!f.route || f.route.length === 0) continue;
+    const current = f.route[f.positionIdx];
+    if (!current) continue;
 
-  f.lat = current[0];
-  f.lng = current[1];
+    f.lat = current[0];
+    f.lng = current[1];
 
-  if (f.phase === 'exit') {
-    f.positionIdx++;
-    if (f.positionIdx >= f.route.length) {
-      f.phase = 'return';
-      f.route = [[f.lat, f.lng], [f.homeLat, f.homeLng]];
-      f.positionIdx = 0;
-    }
-  } else if (f.phase === 'return') {
-    f.positionIdx++;
-    if (f.positionIdx >= f.route.length) {
-      const idx = fighters.findIndex(x => x.id === f.id);
-      if (idx !== -1) fighters.splice(idx, 1);
-      const t = takilas.find(t => t.takilaCode === f.takilaCode);
-      if (t && !fighters.find(x => x.takilaCode === t.takilaCode)) {
-        t.showFightersOut = false;
+    if (f.phase === 'exit') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.phase = 'explore';
+        f.positionIdx = 0;
+        f.speedMultiplier = 0.5;
       }
-    }
-  }
-}
-
-  for (const [aid, hits] of Object.entries(alienHitMap)) {
-    if (hits >= 2) {
-      const idx = aliens.findIndex(a => a.id == aid);
-      if (idx !== -1) {
-        const a = aliens[idx];
-        const pos = a.route[a.positionIdx] || a.route[0];
-        explosions.push({ lat: pos[0], lng: pos[1], type: 'explosion' });
-        aliens.splice(idx, 1);
+    } else if (f.phase === 'explore') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.positionIdx = 0;
+      }
+      if (Math.random() < 0.1) {
+        const randomLat = f.lat + (Math.random() - 0.5) * 0.01;
+        const randomLng = f.lng + (Math.random() - 0.5) * 0.01;
+        shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now() });
+      }
+    } else if (f.phase === 'return') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        const idx = fighters.findIndex(x => x.id === f.id);
+        if (idx !== -1) fighters.splice(idx, 1);
+        const t = takilas.find(t => t.takilaCode === f.takilaCode);
+        if (t && !fighters.find(x => x.takilaCode === t.takilaCode)) {
+          t.showFightersOut = false;
+        }
       }
     }
   }

@@ -244,6 +244,8 @@ app.post('/api/create-fighters', async (req, res) => {
   const newFighters = [];
 
   for (let i = 0; i < 4; i++) {
+      const closestAlien = findClosestAlien(takila);
+if (closestAlien) fighter.targetAlienId = closestAlien.id;
     const fighter = createSingleFighter(takila, modes[i]);
     newFighters.push(fighter);
   }

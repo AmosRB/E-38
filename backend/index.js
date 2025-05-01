@@ -114,8 +114,21 @@ setInterval(async () => {
       explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
     }
   }
+for (const t of takilas) {
+  if (Math.random() < 0.05) {
+    const randomLat = t.lat + (Math.random() - 0.5) * 0.01;
+    const randomLng = t.lng + (Math.random() - 0.5) * 0.01;
+    shots.push({ from: [t.lat, t.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'takila' });
+  }
+}
+for (const l of landings) {
+  if (Math.random() < 0.05) {
+    const randomLat = l.lat + (Math.random() - 0.5) * 0.01;
+    const randomLng = l.lng + (Math.random() - 0.5) * 0.01;
+    shots.push({ from: [l.lat, l.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'landing' });
+  }
+}
 
-  // לולאות נוספות...
 
 }, 1000);
 

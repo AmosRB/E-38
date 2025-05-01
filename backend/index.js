@@ -35,34 +35,39 @@ function getTakilaCode() {
   return `#${toCode(num)}`;
 }
 
-function createSingleFighter(takila, targetAlien, mode) {
+function createSingleFighter(takila, mode) {
   const startLat = takila.lat;
   const startLng = takila.lng;
-  let angle = 0;
-  switch (mode) {
-    case 'right': angle = Math.PI / 2; break;
-    case 'left': angle = -Math.PI / 2; break;
-    case 'back': angle = Math.PI; break;
-    case 'forward': default: angle = 0; break;
-  }
-  const movePoint = (lat, lng, angle, km) => [
-    lat + (km * Math.sin(angle)) / 111,
-    lng + (km * Math.cos(angle)) / (111 * Math.cos(lat * Math.PI / 180))
-  ];
-  const wp = movePoint(startLat, startLng, angle, 0.2);
+  const randomRoute = generateRandomRoute(startLat, startLng);
   return {
     id: Date.now() + Math.random(),
     lat: startLat,
     lng: startLng,
     homeLat: startLat,
     homeLng: startLng,
-    route: [[startLat, startLng], wp],
+    route: randomRoute,
     positionIdx: 0,
     takilaCode: takila.takilaCode,
-    targetAlienId: targetAlien.id,
     phase: 'exit',
-    lastUpdated: Date.now()
+    lastUpdated: Date.now(),
+    fighterCode: Math.random().toString(36).substring(2, 7),
+
   };
+}
+
+  function generateRandomRoute(startLat, startLng) {
+  const route = [[startLat, startLng]];
+  let currentLat = startLat;
+  let currentLng = startLng;
+
+  for (let i = 0; i < 4 + Math.floor(Math.random() * 4); i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const distKm = 0.3 + Math.random() * 0.2;
+    currentLat += (distKm * Math.sin(angle)) / 111;
+    currentLng += (distKm * Math.cos(angle)) / (111 * Math.cos(currentLat * Math.PI / 180));
+    route.push([currentLat, currentLng]);
+  }
+  return route;
 }
 
 setInterval(async () => {
@@ -106,49 +111,33 @@ setInterval(async () => {
   const alienHitMap = {};
 
   for (const f of fighters) {
-    f.lastUpdated = now;
-    if (!f.route || f.route.length === 0) continue;
-    const current = f.route[f.positionIdx];
-    if (!current) continue;
+  f.lastUpdated = now;
+  if (!f.route || f.route.length === 0) continue;
+  const current = f.route[f.positionIdx];
+  if (!current) continue;
 
-    f.lat = current[0];
-    f.lng = current[1];
+  f.lat = current[0];
+  f.lng = current[1];
 
-    if (f.phase === 'exit') {
-      f.positionIdx++;
-      if (f.positionIdx >= f.route.length) {
-        f.phase = 'chase';
-        f.positionIdx = 0;
-        const target = aliens.find(a => a.id === f.targetAlienId);
-        f.route = target?.route || [[f.lat, f.lng]];
-      }
-    } else if (f.phase === 'chase') {
-      f.positionIdx++;
-      const target = aliens.find(a => a.id === f.targetAlienId);
-      if (target && target.route) {
-        const [aLat, aLng] = target.route[target.positionIdx] || target.route[0];
-        const d = Math.sqrt((aLat - f.lat) ** 2 + (aLng - f.lng) ** 2) * 111;
-        if (d < 0.3) {
-          shots.push({ from: [f.lat, f.lng], to: [aLat, aLng] });
-          alienHitMap[target.id] = (alienHitMap[target.id] || 0) + 1;
-        }
-      } else {
-        f.phase = 'return';
-        f.route = [[f.lat, f.lng], [f.homeLat, f.homeLng]];
-        f.positionIdx = 0;
-      }
-    } else if (f.phase === 'return') {
-      f.positionIdx++;
-      if (f.positionIdx >= f.route.length) {
-        const idx = fighters.findIndex(x => x.id === f.id);
-        if (idx !== -1) fighters.splice(idx, 1);
-        const t = takilas.find(t => t.takilaCode === f.takilaCode);
-        if (t && !fighters.find(x => x.takilaCode === t.takilaCode)) {
-          t.showFightersOut = false;
-        }
+  if (f.phase === 'exit') {
+    f.positionIdx++;
+    if (f.positionIdx >= f.route.length) {
+      f.phase = 'return';
+      f.route = [[f.lat, f.lng], [f.homeLat, f.homeLng]];
+      f.positionIdx = 0;
+    }
+  } else if (f.phase === 'return') {
+    f.positionIdx++;
+    if (f.positionIdx >= f.route.length) {
+      const idx = fighters.findIndex(x => x.id === f.id);
+      if (idx !== -1) fighters.splice(idx, 1);
+      const t = takilas.find(t => t.takilaCode === f.takilaCode);
+      if (t && !fighters.find(x => x.takilaCode === t.takilaCode)) {
+        t.showFightersOut = false;
       }
     }
   }
+}
 
   for (const [aid, hits] of Object.entries(alienHitMap)) {
     if (hits >= 2) {
@@ -210,27 +199,26 @@ async function createAlien(lat, lng, landingId, alienCode) {
 }
 
 app.post('/api/create-fighters', async (req, res) => {
-  const { takilaId, targetAlienId } = req.body;
+  const { takilaId } = req.body;
 
   const takila = takilas.find(t => t.id === takilaId);
-  const alien = aliens.find(a => a.id === targetAlienId);
 
-  if (!takila || !alien) {
-    return res.status(404).json({ error: 'Takila or alien not found' });
+  if (!takila) {
+    return res.status(404).json({ error: 'Takila not found' });
   }
 
   const modes = ['forward', 'back', 'left', 'right'];
   const newFighters = [];
 
   for (let i = 0; i < 4; i++) {
-    const fighter = createSingleFighter(takila, alien, modes[i]);
+    const fighter = createSingleFighter(takila, modes[i]);
     newFighters.push(fighter);
   }
 
   fighters.push(...newFighters);
   takila.showFightersOut = true;
 
-  console.log(`✅ Fighters created for takila ${takila.id} targeting alien ${alien.id}`);
+  console.log(`✅ Fighters created for takila ${takila.id} with random routes`);
 
   res.status(201).json({ fighters: newFighters });
 });

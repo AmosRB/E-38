@@ -71,47 +71,54 @@ setInterval(async () => {
   const now = Date.now();
   shots = shots.filter(s => now - s.timestamp < 500);
   explosions = explosions.filter(e => now - e.timestamp < 2000);
- 
 
-
+  // לולאת לוחמים
   for (const f of fighters) {
     if (Math.random() < 0.1) {
       const randomLat = f.lat + (Math.random() - 0.5) * 0.01;
       const randomLng = f.lng + (Math.random() - 0.5) * 0.01;
       shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'fighter' });
- if (f.phase === 'exit') {
-  f.positionIdx++;
-  if (f.positionIdx >= f.route.length) {
-    f.route = generateRandomRoute(f.lat, f.lng);
-    f.phase = 'explore';
-    f.positionIdx = 0;
+    }
+    if (f.phase === 'exit') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.phase = 'explore';
+        f.positionIdx = 0;
+      }
+    } else if (f.phase === 'explore') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.positionIdx = 0;
+      }
+    }
   }
-} else if (f.phase === 'explore') {
-  f.positionIdx++;
-  if (f.positionIdx >= f.route.length) {
-    f.route = generateRandomRoute(f.lat, f.lng);
-    f.positionIdx = 0;
-  }
-}
 
- for (const a of aliens) {
-  if (a.route && a.positionIdx < a.route.length - 1) {
-    a.positionIdx++;
-    a.lat = a.route[a.positionIdx][0];
-    a.lng = a.route[a.positionIdx][1];
-  } else {
-    const from = a.route[a.route.length - 1];
-    const angle = Math.random() * 360;
-    const to = [
-      from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
-      from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
-    ];
-    const newRoute = await getRouteServer(from, to);
-    a.route = newRoute;
-    a.positionIdx = 0;
-    explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
+  // לולאת חייזרים
+  for (const a of aliens) {
+    if (a.route && a.positionIdx < a.route.length - 1) {
+      a.positionIdx++;
+      a.lat = a.route[a.positionIdx][0];
+      a.lng = a.route[a.positionIdx][1];
+    } else {
+      const from = a.route[a.route.length - 1];
+      const angle = Math.random() * 360;
+      const to = [
+        from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
+        from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
+      ];
+      const newRoute = await getRouteServer(from, to);
+      a.route = newRoute;
+      a.positionIdx = 0;
+      explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: Date.now() });
+    }
   }
-}
+
+  // לולאות נוספות...
+
+}, 1000);
+
 
   for (const t of takilas) {
     if (Math.random() < 0.05) {

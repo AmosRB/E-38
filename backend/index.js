@@ -74,10 +74,19 @@ setInterval(async () => {
 
   // לולאת לוחמים
 for (const f of fighters) {
-  if (Math.random() < 0.1) {
-    const randomLat = f.lat + (Math.random() - 0.5) * 0.01;
-    const randomLng = f.lng + (Math.random() - 0.5) * 0.01;
-    shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'fighter' });
+  for (const a of aliens) {
+    const dx = f.lat - a.lat;
+    const dy = f.lng - a.lng;
+    const distanceKm = Math.sqrt(dx * dx + dy * dy) * 111; // ק"מ בקירוב
+
+    if (distanceKm < 0.3) { // פחות מ־300 מטר
+      shots.push({
+        from: [f.lat, f.lng],
+        to: [a.lat, a.lng],
+        timestamp: Date.now(),
+        type: 'fighter'
+      });
+    }
   }
 
   if (f.phase === 'exit') {
@@ -99,25 +108,6 @@ for (const f of fighters) {
     f.lng = f.route[f.positionIdx][1];
   }
 }
-
-  for (const t of takilas) {
-  if (t.route && t.positionIdx < t.route.length - 1) {
-    t.positionIdx++;
-    t.lat = t.route[t.positionIdx][0];
-    t.lng = t.route[t.positionIdx][1];
-  } else {
-    const from = t.route[t.route.length - 1];
-    const angle = Math.random() * 360;
-    const to = [
-      from[0] + 0.05 * Math.cos(angle * Math.PI / 180),
-      from[1] + 0.05 * Math.sin(angle * Math.PI / 180)
-    ];
-    const newRoute = await getRouteServer(from, to);
-    t.route = newRoute;
-    t.positionIdx = 0;
-  }
-}
-
 
 
   // לולאת חייזרים

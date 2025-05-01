@@ -100,9 +100,10 @@ setInterval(async () => {
   shots = shots.filter(s => now - s.timestamp < 500);
   explosions = explosions.filter(e => now - e.timestamp < 2000);
 
+  // לולאת לוחמים
   for (const f of fighters) {
     if (!f.lastMoveTime) f.lastMoveTime = now;
-    const interval = 5142; // מהירות 7 קמ"ש
+    const interval = 5142; // מהירות ~7 קמ״ש
 
     if (now - f.lastMoveTime >= interval) {
       if (f.phase === 'exit') {
@@ -117,10 +118,8 @@ setInterval(async () => {
           const dx = f.lat - target.lat;
           const dy = f.lng - target.lng;
           const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-
           if (dist < 0.3) {
             shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
-            // סימולציה של פגיעת חייזר
             target.hitCount = (target.hitCount || 0) + 1;
             if (target.hitCount >= 2) {
               aliens = aliens.filter(a => a.id !== target.id);
@@ -149,7 +148,6 @@ setInterval(async () => {
           continue;
         }
       }
-
       if (f.route && f.route[f.positionIdx]) {
         f.lat = f.route[f.positionIdx][0];
         f.lng = f.route[f.positionIdx][1];
@@ -158,7 +156,7 @@ setInterval(async () => {
     }
   }
 
-  // תזוזת חייזרים
+  // לולאת חייזרים
   for (const a of aliens) {
     if (a.route && a.positionIdx < a.route.length - 1) {
       a.positionIdx++;
@@ -175,30 +173,38 @@ setInterval(async () => {
     }
   }
 
-  // ירי מטקילות ונחיתות
-for (const t of takilas) {
-  for (const l of landings) {
-    const dx = t.lat - l.lat;
-    const dy = t.lng - l.lng;
-    const dist = Math.sqrt(dx * dx + dy * dy) * 111; // המרחק בק״מ
-    if (dist <= 1.5) {
-      shots.push({
-        from: [t.lat, t.lng],
-        to: [l.lat, l.lng],
-        timestamp: now,
-        type: 'takila'
-      });
-    }
-    if (dist <= 1) {
-      shots.push({
-        from: [l.lat, l.lng],
-        to: [t.lat, t.lng],
-        timestamp: now,
-        type: 'landing'
-      });
+  // לולאת טקילות
+  for (const t of takilas) {
+    if (!t.lastMoveTime) t.lastMoveTime = now;
+    const interval = 6000; // מהירות ~60 קמ״ש
+    if (now - t.lastMoveTime >= interval) {
+      t.positionIdx++;
+      if (t.positionIdx >= t.route.length) {
+        const angle = Math.random() * 360;
+        const to = [t.lat + 0.1 * Math.cos(angle * Math.PI / 180), t.lng + 0.1 * Math.sin(angle * Math.PI / 180)];
+        t.route = await getRouteServer([t.lat, t.lng], to);
+        t.positionIdx = 0;
+      }
+      t.lat = t.route[t.positionIdx][0];
+      t.lng = t.route[t.positionIdx][1];
+      t.lastMoveTime = now;
     }
   }
-}
+
+  // ירי בין טקילות לנחיתות
+  for (const t of takilas) {
+    for (const l of landings) {
+      const dx = t.lat - l.lat;
+      const dy = t.lng - l.lng;
+      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+      if (dist <= 1.5) {
+        shots.push({ from: [t.lat, t.lng], to: [l.lat, l.lng], timestamp: now, type: 'takila' });
+      }
+      if (dist <= 1) {
+        shots.push({ from: [l.lat, l.lng], to: [t.lat, t.lng], timestamp: now, type: 'landing' });
+      }
+    }
+  }
 }, 1000);
 
 

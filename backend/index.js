@@ -75,9 +75,9 @@ setInterval(async () => {
   // לולאת לוחמים
 for (const f of fighters) {
   if (!f.lastMoveTime) f.lastMoveTime = now;
-  const fighterInterval = 5142; // בערך 7 קמ״ש (אם חייזרים זזים כל 1000ms)
+  const fighterInterval = 5142; // 7 קמ״ש
 
-  // רק אם הגיע הזמן — נעדכן מיקום
+  // תזוזה
   if (now - f.lastMoveTime >= fighterInterval) {
     if (f.phase === 'exit') {
       f.positionIdx++;
@@ -98,7 +98,7 @@ for (const f of fighters) {
     f.lastMoveTime = now;
   }
 
-  // ירי על כל חייזר קרוב (פחות מ־300 מטר)
+  // ירי תמידי על חייזרים קרובים (פחות מ־300 מטר)
   for (const a of aliens) {
     const dx = f.lat - a.lat;
     const dy = f.lng - a.lng;
@@ -113,7 +113,6 @@ for (const f of fighters) {
     }
   }
 }
-
 
 
   // לולאת חייזרים

@@ -80,12 +80,23 @@ setInterval(async () => {
       shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'fighter' });
     }
     if (f.phase === 'exit') {
-      f.positionIdx++;
-      if (f.positionIdx >= f.route.length) {
-        f.route = generateRandomRoute(f.lat, f.lng);
-        f.phase = 'explore';
-        f.positionIdx = 0;
-      }
+  f.positionIdx++;
+  if (f.positionIdx >= f.route.length) {
+    f.route = generateRandomRoute(f.lat, f.lng);
+    f.phase = 'explore';
+    f.positionIdx = 0;
+  }
+  f.lat = f.route[f.positionIdx][0];
+  f.lng = f.route[f.positionIdx][1];
+} else if (f.phase === 'explore') {
+  f.positionIdx++;
+  if (f.positionIdx >= f.route.length) {
+    f.route = generateRandomRoute(f.lat, f.lng);
+    f.positionIdx = 0;
+  }
+  f.lat = f.route[f.positionIdx][0];
+  f.lng = f.route[f.positionIdx][1];
+}
     } else if (f.phase === 'explore') {
       f.positionIdx++;
       if (f.positionIdx >= f.route.length) {
@@ -130,23 +141,6 @@ for (const l of landings) {
 }
 
 
-}, 1000);
-
-
-  for (const t of takilas) {
-    if (Math.random() < 0.05) {
-      const randomLat = t.lat + (Math.random() - 0.5) * 0.01;
-      const randomLng = t.lng + (Math.random() - 0.5) * 0.01;
-      shots.push({ from: [t.lat, t.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'takila' });
-    }
-  }
-  for (const l of landings) {
-    if (Math.random() < 0.05) {
-      const randomLat = l.lat + (Math.random() - 0.5) * 0.01;
-      const randomLng = l.lng + (Math.random() - 0.5) * 0.01;
-      shots.push({ from: [l.lat, l.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'landing' });
-    }
-  }
 }, 1000);
 
 async function getRouteServer(from, to) {

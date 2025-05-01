@@ -79,8 +79,21 @@ setInterval(async () => {
       const randomLat = f.lat + (Math.random() - 0.5) * 0.01;
       const randomLng = f.lng + (Math.random() - 0.5) * 0.01;
       shots.push({ from: [f.lat, f.lng], to: [randomLat, randomLng], timestamp: Date.now(), type: 'fighter' });
-    }
+ if (f.phase === 'exit') {
+  f.positionIdx++;
+  if (f.positionIdx >= f.route.length) {
+    f.route = generateRandomRoute(f.lat, f.lng);
+    f.phase = 'explore';
+    f.positionIdx = 0;
   }
+} else if (f.phase === 'explore') {
+  f.positionIdx++;
+  if (f.positionIdx >= f.route.length) {
+    f.route = generateRandomRoute(f.lat, f.lng);
+    f.positionIdx = 0;
+  }
+}
+
  for (const a of aliens) {
   if (a.route && a.positionIdx < a.route.length - 1) {
     a.positionIdx++;

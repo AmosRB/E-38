@@ -74,40 +74,46 @@ setInterval(async () => {
 
   // לולאת לוחמים
 for (const f of fighters) {
+  if (!f.lastMoveTime) f.lastMoveTime = now;
+  const fighterInterval = 5142; // בערך 7 קמ״ש (אם חייזרים זזים כל 1000ms)
+
+  // רק אם הגיע הזמן — נעדכן מיקום
+  if (now - f.lastMoveTime >= fighterInterval) {
+    if (f.phase === 'exit') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.phase = 'explore';
+        f.positionIdx = 0;
+      }
+    } else if (f.phase === 'explore') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.positionIdx = 0;
+      }
+    }
+    f.lat = f.route[f.positionIdx][0];
+    f.lng = f.route[f.positionIdx][1];
+    f.lastMoveTime = now;
+  }
+
+  // ירי על כל חייזר קרוב (פחות מ־300 מטר)
   for (const a of aliens) {
     const dx = f.lat - a.lat;
     const dy = f.lng - a.lng;
-    const distanceKm = Math.sqrt(dx * dx + dy * dy) * 111; // ק"מ בקירוב
-
-    if (distanceKm < 0.3) { // פחות מ־300 מטר
+    const distanceKm = Math.sqrt(dx * dx + dy * dy) * 111;
+    if (distanceKm < 0.3) {
       shots.push({
         from: [f.lat, f.lng],
         to: [a.lat, a.lng],
-        timestamp: Date.now(),
+        timestamp: now,
         type: 'fighter'
       });
     }
   }
-
-  if (f.phase === 'exit') {
-    f.positionIdx++;
-    if (f.positionIdx >= f.route.length) {
-      f.route = generateRandomRoute(f.lat, f.lng);
-      f.phase = 'explore';
-      f.positionIdx = 0;
-    }
-    f.lat = f.route[f.positionIdx][0];
-    f.lng = f.route[f.positionIdx][1];
-  } else if (f.phase === 'explore') {
-    f.positionIdx++;
-    if (f.positionIdx >= f.route.length) {
-      f.route = generateRandomRoute(f.lat, f.lng);
-      f.positionIdx = 0;
-    }
-    f.lat = f.route[f.positionIdx][0];
-    f.lng = f.route[f.positionIdx][1];
-  }
 }
+
 
 
   // לולאת חייזרים

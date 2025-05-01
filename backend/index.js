@@ -101,61 +101,69 @@ setInterval(async () => {
   explosions = explosions.filter(e => now - e.timestamp < 2000);
 
   // לולאת לוחמים
-  for (const f of fighters) {
-    if (!f.lastMoveTime) f.lastMoveTime = now;
-    const interval = 5142; // מהירות ~7 קמ״ש
+ for (const f of fighters) {
+  if (!f.lastMoveTime) f.lastMoveTime = now;
+  const interval = 5142; // מהירות ~7 קמ״ש
 
-    if (now - f.lastMoveTime >= interval) {
-      if (f.phase === 'exit') {
-        f.positionIdx++;
-        if (f.positionIdx >= f.route.length) {
-          f.phase = 'chase';
-          f.positionIdx = 0;
-        }
-      } else if (f.phase === 'chase') {
-        const target = aliens.find(a => a.id === f.targetAlienId);
-        if (target) {
-          const dx = f.lat - target.lat;
-          const dy = f.lng - target.lng;
-          const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+  if (now - f.lastMoveTime >= interval) {
+    if (f.phase === 'exit') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        f.phase = 'chase';
+        f.positionIdx = 0;
+      }
+    } else if (f.phase === 'chase') {
+      const target = aliens.find(a => a.id === f.targetAlienId);
+      if (target) {
+        const dx = f.lat - target.lat;
+        const dy = f.lng - target.lng;
+        const dist = Math.sqrt(dx * dx + dy * dy) * 111;
 
-          if (dist < 0.3) {
-            shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
-            target.hitCount = (target.hitCount || 0) + 1;
-            if (target.hitCount >= 2) {
-              aliens = aliens.filter(a => a.id !== target.id);
-              f.phase = 'return';
-              const takila = takilas.find(t => t.takilaCode === f.takilaCode);
-              f.route = await getRouteServer([f.lat, f.lng], [takila.lat, takila.lng]);
-              f.positionIdx = 0;
-              continue;
-            }
+        if (dist < 0.3) {
+          shots.push({ from: [f.lat, f.lng], to: [target.lat, target.lng], timestamp: now, type: 'fighter' });
+          target.hitCount = (target.hitCount || 0) + 1;
+
+          if (target.hitCount >= 2) {
+            // מוחקים את החייזר רק אחרי שהירייה נוספה ל־shots
+            aliens = aliens.filter(a => a.id !== target.id);
+            f.phase = 'return';
+            f.targetAlienId = null; // איפוס כדי לא לחפש יותר
+            const takila = takilas.find(t => t.takilaCode === f.takilaCode);
+            f.route = await getRouteServer([f.lat, f.lng], [takila.lat, takila.lng]);
+            f.positionIdx = 0;
+            continue;
           }
-          f.route = await getRouteServer([f.lat, f.lng], [target.lat, target.lng]);
-          f.positionIdx = 0;
-        } else {
-          f.phase = 'return';
-          const takila = takilas.find(t => t.takilaCode === f.takilaCode);
-          f.route = await getRouteServer([f.lat, f.lng], [takila.lat, takila.lng]);
-          f.positionIdx = 0;
         }
-      } else if (f.phase === 'return') {
-        f.positionIdx++;
-        if (f.positionIdx >= f.route.length) {
-          const idx = fighters.findIndex(x => x.id === f.id);
-          if (idx !== -1) fighters.splice(idx, 1);
-          const takila = takilas.find(t => t.takilaCode === f.takilaCode);
-          if (takila) takila.showFightersOut = false;
-          continue;
-        }
+
+        // מתעדכן במסלול חדש לכיוון החייזר
+        f.route = await getRouteServer([f.lat, f.lng], [target.lat, target.lng]);
+        f.positionIdx = 0;
+      } else {
+        f.phase = 'return';
+        f.targetAlienId = null; // איפוס
+        const takila = takilas.find(t => t.takilaCode === f.takilaCode);
+        f.route = await getRouteServer([f.lat, f.lng], [takila.lat, takila.lng]);
+        f.positionIdx = 0;
       }
-      if (f.route && f.route[f.positionIdx]) {
-        f.lat = f.route[f.positionIdx][0];
-        f.lng = f.route[f.positionIdx][1];
+    } else if (f.phase === 'return') {
+      f.positionIdx++;
+      if (f.positionIdx >= f.route.length) {
+        const idx = fighters.findIndex(x => x.id === f.id);
+        if (idx !== -1) fighters.splice(idx, 1);
+        const takila = takilas.find(t => t.takilaCode === f.takilaCode);
+        if (takila) takila.showFightersOut = false;
+        continue;
       }
-      f.lastMoveTime = now;
     }
+
+    if (f.route && f.route[f.positionIdx]) {
+      f.lat = f.route[f.positionIdx][0];
+      f.lng = f.route[f.positionIdx][1];
+    }
+    f.lastMoveTime = now;
   }
+}
+
 
   // לולאת חייזרים
   for (const a of aliens) {

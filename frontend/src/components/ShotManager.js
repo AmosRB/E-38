@@ -7,7 +7,7 @@ export default function ShotManager({ fighters, aliens, setAliens, setExplosions
   // סינון יריות מהשרת לפי זמן (300 מילישניות אחרונות)
   useEffect(() => {
     if (shotsFromServer) {
-      setShots(shotsFromServer.filter(s => Date.now() - s.properties.timestamp < 300));
+      setShots(shotsFromServer.filter(s => Date.now() - s.properties.timestamp < 2000));
     }
   }, [shotsFromServer]);
 

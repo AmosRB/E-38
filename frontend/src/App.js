@@ -58,8 +58,9 @@ export default function App() {
 <MapContainer
     center={[32.05, 34.85]}
     zoom={11}
-    className="leaflet-container"
+    style={{ height: '100vh', width: '100%' }}
 >
+
 
 
 

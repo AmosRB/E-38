@@ -3,15 +3,15 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
+  position: relative; /* ✅ FIX: מאפשר absolute בפנים */
 }
 
 .leaflet-container {
-  position: absolute;
-  top: 50px;      /* גובה ה-navbar */
-  bottom: 50px;   /* גובה ה-bottombar */
+  position: absolute;   /* ✅ FIX: תופס רק בין ה-navbar וה-bottombar */
+  top: 50px;            /* גובה ה-navbar */
+  bottom: 50px;         /* גובה ה-bottombar */
   width: 100%;
 }
-
 
 /* סרגל עליון (Navbar) */
 .navbar {
@@ -25,6 +25,7 @@ html, body, #root {
   justify-content: space-between;
   align-items: center;
   padding: 10px;
+  height: 50px; /* ✅ FIX: תואם ל-top של המפה */
   z-index: 1000;
 }
 
@@ -40,19 +41,4 @@ html, body, #root {
   justify-content: space-around;
   align-items: center;
   padding: 10px;
-  z-index: 1000;
-}
-
-/* ✅ FIX: התאמה טובה יותר לניידים */
-@media (max-width: 600px) {
-  .navbar, .bottombar {
-    flex-direction: column;
-    padding: 5px;
-  }
-
-  .bottombar button, .navbar button {
-    font-size: 12px;
-    padding: 4px 8px;
-    margin: 4px;
-  }
-}
+  height: 50px; /* ✅ FIX: תואם ל-botto*

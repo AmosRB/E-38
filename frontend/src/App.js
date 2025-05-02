@@ -104,7 +104,7 @@ export default function App() {
         >
           {(shots) => (
             <MapView
-              center={[32.08, 34.78]}
+              center={[32.05, 34.85]} zoom={7}
               landings={landings}
               aliens={aliens}
               takilas={takilas}

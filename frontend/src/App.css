@@ -4,6 +4,21 @@ html, body, #root {
   padding: 0;
 }
 
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
 .navbar, .bottombar {
-  height: 50px;
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+}
+
+.navbar {
+  top: 0;
+}
+
+.bottombar {
+  bottom: 0;
 }

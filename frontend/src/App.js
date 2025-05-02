@@ -55,11 +55,16 @@ export default function App() {
                 onRequestClearAll={handleClearAliensLandings}
             />
 
-            <MapContainer center={[32.05, 34.85]} zoom={11} style={{ height: '100%', width: '100%' }}>
-                <TileLayer
-                    attribution="&copy; OpenStreetMap"
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+           <MapContainer
+    center={[32.05, 34.85]}
+    zoom={11}
+    style={{ position: 'absolute', top: '50px', bottom: '50px', width: '100%' }}
+>
+    <TileLayer
+        attribution="&copy; OpenStreetMap"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+
 
                 <AnimationEngine gameState={gameState} setGameState={setGameState} />
                 <ShotRenderer gameState={gameState} />

@@ -1,14 +1,30 @@
 import { useEffect } from 'react';
 
-export default function AnimationEngine({ gameState }) {
+export default function AnimationEngine({ gameState, setGameState }) {
   useEffect(() => {
-    // תנועה רנדומלית קלה לדוגמה
-    gameState.aliens.forEach(a => {
-      a.lat += (Math.random() - 0.5) * 0.0001;
-      a.lng += (Math.random() - 0.5) * 0.0001;
-    });
-  }, [gameState]);
+    let frameId;
+
+    const animate = () => {
+      const time = Date.now();
+
+      const updatedAliens = gameState.aliens.map(a => ({
+        ...a,
+        lat: a.lat + Math.sin(time / 500 + a.id) * 0.0001,
+        lng: a.lng + Math.cos(time / 500 + a.id) * 0.0001,
+      }));
+
+      setGameState(prev => ({
+        ...prev,
+        aliens: updatedAliens,
+      }));
+
+      frameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => cancelAnimationFrame(frameId);
+  }, [gameState, setGameState]);
 
   return null;
 }
-

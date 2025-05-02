@@ -97,7 +97,7 @@ async function getRouteServer(from, to) {
 
 setInterval(async () => {
   const now = Date.now();
-  shots = shots.filter(s => now - s.timestamp < 1500);
+  shots = shots.filter(s => now - s.timestamp < 5000);
   explosions = explosions.filter(e => now - e.timestamp < 2000);
 
   // לולאת לוחמים

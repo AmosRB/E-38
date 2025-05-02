@@ -55,11 +55,12 @@ export default function App() {
                 onRequestClearAll={handleClearAliensLandings}
             />
 
- <MapContainer
+<MapContainer
     center={[32.05, 34.85]}
     zoom={11}
-    style={{ position: 'absolute', top: '50px', bottom: '50px', width: '100%' }}
+    className="leaflet-container"
 >
+
 
 
     <TileLayer

@@ -1,44 +1,9 @@
-/* אפס רווחים והכנה לפריסה מלאה */
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  position: relative; /* ✅ FIX: מאפשר absolute בפנים */
 }
 
-.leaflet-container {
-  position: absolute;   /* ✅ FIX: תופס רק בין ה-navbar וה-bottombar */
-  top: 50px;            /* גובה ה-navbar */
-  bottom: 50px;         /* גובה ה-bottombar */
-  width: 100%;
+.navbar, .bottombar {
+  height: 50px;
 }
-
-/* סרגל עליון (Navbar) */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-color: black;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  height: 50px; /* ✅ FIX: תואם ל-top של המפה */
-  z-index: 1000;
-}
-
-/* סרגל תחתון (BottomBar) */
-.bottombar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: black;
-  color: white;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px;
-  height: 50px; /* ✅ FIX: תואם ל-botto*

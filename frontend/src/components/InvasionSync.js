@@ -1,5 +1,3 @@
-// ✅ InvasionSync.js סופי - כולל locationName נכון לנחיתות
-
 import { useEffect } from 'react';
 import axios from 'axios';
 
@@ -55,15 +53,17 @@ export default function InvasionSync({ landings, aliens, setLandings, setAliens,
           positionIdx: f.properties.positionIdx || 0
         }));
 
+        const remoteShots = features.filter(f => f.properties?.type === 'shot');
+
         setLandings(remoteLandings);
         setAliens(remoteAliens);
         setTakilas(remoteTakilas);
         setFighters(remoteFighters);
-        setShots([]);
+        setShots(remoteShots);
         setExplosions([]);
 
       } catch (err) {
-        console.error("\u274C Failed to sync invasion:", err.message);
+        console.error("❌ Failed to sync invasion:", err.message);
       }
     }, 1000);
 

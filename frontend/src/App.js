@@ -10,17 +10,10 @@ import L from 'leaflet';
 export default function App() {
   const [gameState, setGameState] = useState({ aliens: [], fighters: [], takilas: [], landings: [], shots: [] });
 
-  const alienIcon = new L.DivIcon({
-    html: '👽',
-    className: '',
-    iconSize: [24, 24]
-  });
-
-  const landingIcon = new L.DivIcon({
-    html: '🛸',
-    className: '',
-    iconSize: [24, 24]
-  });
+  const alienIcon = new L.DivIcon({ html: '👽', className: '', iconSize: [24, 24] });
+  const landingIcon = new L.DivIcon({ html: '🛸', className: '', iconSize: [24, 24] });
+  const takilaIcon = new L.DivIcon({ html: '🚙', className: '', iconSize: [24, 24] });
+  const fighterIcon = new L.DivIcon({ html: '🧍', className: '', iconSize: [24, 24] });
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -74,6 +67,20 @@ export default function App() {
         {gameState.aliens.map(a => (
           <Marker key={`alien-${a.id}`} position={[a.lat, a.lng]} icon={alienIcon}>
             <Popup>Alien #{a.id}</Popup>
+          </Marker>
+        ))}
+
+        {/* טקילות */}
+        {gameState.takilas.map(t => (
+          <Marker key={`takila-${t.id}`} position={[t.lat, t.lng]} icon={takilaIcon}>
+            <Popup>Takila #{t.id}</Popup>
+          </Marker>
+        ))}
+
+        {/* לוחמים */}
+        {gameState.fighters.map(f => (
+          <Marker key={`fighter-${f.id}`} position={[f.lat, f.lng]} icon={fighterIcon}>
+            <Popup>Fighter #{f.id}</Popup>
           </Marker>
         ))}
       </MapContainer>

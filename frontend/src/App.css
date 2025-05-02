@@ -1,76 +1,55 @@
-/* סגנון בסיס עם מפה ברקע ו־Navbar + BottomBar צפים */
+/* אפס רווחים ומילוי מסך מלא */
 html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
 }
 
-.map-container {
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* עיצוב navbar קבוע למעלה */
+.navbar {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-.navbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  width: 100%;
   background-color: black;
   color: white;
-  padding: 0.5em 1em;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  padding: 10px;
+  z-index: 1000;
 }
 
+/* עיצוב bottombar קבוע למטה */
 .bottombar {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
-  right: 0;
-  z-index: 1000;
+  width: 100%;
+  background-color: black;
+  color: white;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background-color: black;
-  color: white;
-  height: 50px;
-  font-size: 16px;
-  padding: 0 10px;
-  flex-wrap: wrap;
+  padding: 10px;
+  z-index: 1000;
 }
 
-/* רספונסיביות לטלפונים */
-@media (max-width: 768px) {
-  .bottombar {
-    flex-direction: row; /* ✅ במקום column */
-    flex-wrap: wrap;
-    height: auto;
-    padding: 10px;
-    gap: 6px;
+/* רספונסיביות לניידים */
+@media (max-width: 600px) {
+  .navbar, .bottombar {
+    flex-direction: column;
+    padding: 5px;
   }
 
-  .bottombar button {
-    width: auto;
-    margin: 0;
-  }
-
-  .navbar {
-    flex-direction: row; /* ✅ במקום column */
-    flex-wrap: wrap;
-    text-align: center;
-    justify-content: space-around;
-    padding: 10px 5px;
-  }
-
-  .navbar button {
-    margin: 0;
+  .bottombar button, .navbar button {
+    font-size: 12px;
+    padding: 4px 8px;
+    margin: 4px;
   }
 }

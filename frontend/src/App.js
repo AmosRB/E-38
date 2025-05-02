@@ -58,12 +58,8 @@ export default function App() {
 <MapContainer
     center={[32.05, 34.85]}
     zoom={11}
-    className="map-container"
+    style={{ height: '100%', width: '100%' }}
 >
-
-
-
-
 
     <TileLayer
         attribution="&copy; OpenStreetMap"

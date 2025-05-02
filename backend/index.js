@@ -166,21 +166,36 @@ setInterval(async () => {
 
 
   // לולאת חייזרים
-  for (const a of aliens) {
-    if (a.route && a.positionIdx < a.route.length - 1) {
-      a.positionIdx++;
-      a.lat = a.route[a.positionIdx][0];
-      a.lng = a.route[a.positionIdx][1];
-    } else {
-      const from = a.route[a.route.length - 1];
-      const angle = Math.random() * 360;
-      const to = [from[0] + 0.05 * Math.cos(angle * Math.PI / 180), from[1] + 0.05 * Math.sin(angle * Math.PI / 180)];
-      const newRoute = await getRouteServer(from, to);
-      a.route = newRoute;
-      a.positionIdx = 0;
-      explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: now });
+ for (const a of aliens) {
+    if (!a.lastShotTime) a.lastShotTime = now;
+    if (now - a.lastShotTime >= 2000) {  // כל 2 שניות
+        const angle = Math.random() * 360;
+        const distKm = 0.3;  // 300 מטר
+        const targetLat = a.lat + (distKm * Math.sin(angle * Math.PI / 180)) / 111;
+        const targetLng = a.lng + (distKm * Math.cos(angle * Math.PI / 180)) / (111 * Math.cos(a.lat * Math.PI / 180));
+        shots.push({
+            from: [a.lat, a.lng],
+            to: [targetLat, targetLng],
+            timestamp: now,
+            type: 'alien'
+        });
+        a.lastShotTime = now;
     }
-  }
+
+    if (a.route && a.positionIdx < a.route.length - 1) {
+        a.positionIdx++;
+        a.lat = a.route[a.positionIdx][0];
+        a.lng = a.route[a.positionIdx][1];
+    } else {
+        const from = a.route[a.route.length - 1];
+        const angle = Math.random() * 360;
+        const to = [from[0] + 0.05 * Math.cos(angle * Math.PI / 180), from[1] + 0.05 * Math.sin(angle * Math.PI / 180)];
+        const newRoute = await getRouteServer(from, to);
+        a.route = newRoute;
+        a.positionIdx = 0;
+        explosions.push({ lat: a.lat, lng: a.lng, type: 'explosion', timestamp: now });
+    }
+}
 
   // לולאת טקילות
   for (const t of takilas) {

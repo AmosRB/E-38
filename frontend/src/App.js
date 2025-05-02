@@ -42,7 +42,7 @@ export default function App() {
         onRequestClearAll={handleClearAliensLandings}
       />
 
-      <MapContainer center={[32, 34]} zoom={13} style={{ height: '90vh' }}>
+      <MapContainer center={[32.05, 34.85]} zoom={11} style={{ height: '90vh' }}>
         <TileLayer
           attribution="&copy; OpenStreetMap"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

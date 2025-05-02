@@ -53,31 +53,27 @@ export default function App() {
           attribution="&copy; OpenStreetMap"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <AnimationEngine gameState={gameState} />
+        <AnimationEngine gameState={gameState} setGameState={setGameState} />
         <ShotRenderer gameState={gameState} />
 
-        {/* נחיתות */}
         {gameState.landings.map(l => (
           <Marker key={`landing-${l.id}`} position={[l.lat, l.lng]} icon={landingIcon}>
             <Popup>Landing #{l.id}</Popup>
           </Marker>
         ))}
 
-        {/* חייזרים */}
         {gameState.aliens.map(a => (
           <Marker key={`alien-${a.id}`} position={[a.lat, a.lng]} icon={alienIcon}>
             <Popup>Alien #{a.id}</Popup>
           </Marker>
         ))}
 
-        {/* טקילות */}
         {gameState.takilas.map(t => (
           <Marker key={`takila-${t.id}`} position={[t.lat, t.lng]} icon={takilaIcon}>
             <Popup>Takila #{t.id}</Popup>
           </Marker>
         ))}
 
-        {/* לוחמים */}
         {gameState.fighters.map(f => (
           <Marker key={`fighter-${f.id}`} position={[f.lat, f.lng]} icon={fighterIcon}>
             <Popup>Fighter #{f.id}</Popup>

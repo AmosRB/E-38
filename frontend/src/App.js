@@ -55,22 +55,19 @@ export default function App() {
                 onRequestClearAll={handleClearAliensLandings}
             />
 
-<MapContainer
-    center={[32.05, 34.85]}
-    zoom={11}
-    style={{ height: '100%', width: '100%' }}
->
-
-    <TileLayer
-        attribution="&copy; OpenStreetMap"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-    />
-
+            <MapContainer
+                center={[32.05, 34.85]}
+                zoom={11}
+                style={{ height: '100%', width: '100%' }}
+            >
+                <TileLayer
+                    attribution="&copy; OpenStreetMap"
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
 
                 <AnimationEngine gameState={gameState} setGameState={setGameState} />
                 <ShotRenderer gameState={gameState} />
 
-                {/* ✅ FIX: check if arrays exist before mapping */}
                 {gameState.landings && gameState.landings.map(l => (
                     <Marker key={`landing-${l.id}`} position={[l.lat, l.lng]} icon={landingIcon}>
                         <Popup>Landing #{l.id}</Popup>
@@ -105,3 +102,4 @@ export default function App() {
         </>
     );
 }
+

@@ -6,9 +6,12 @@ html, body, #root {
 }
 
 .leaflet-container {
-  height: 100%;
+  position: absolute;
+  top: 50px;      /* גובה ה-navbar */
+  bottom: 50px;   /* גובה ה-bottombar */
   width: 100%;
 }
+
 
 /* סרגל עליון (Navbar) */
 .navbar {

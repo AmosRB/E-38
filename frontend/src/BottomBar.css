@@ -1,13 +1,13 @@
 @media (max-width: 600px) {
-    .bottom-bar button {
+    .bottombar button {
       font-size: 12px;
       padding: 4px 8px;
     }
-    .bottom-bar {
+    .bottombar {
       font-size: 14px;
       height: 45px;
     }
-  }
+}
 .bottombar {
   display: flex;
   justify-content: space-around;
@@ -17,6 +17,3 @@
   height: 50px;
   padding: 5px 10px;
 }
-
-
-  

@@ -21,7 +21,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
           boxShadow: '0 0 8px #ff0033',
           transition: '0.3s'
         }}>
-           DEL. ALL
+           TAKE OFF
         </button>
       </div>
 

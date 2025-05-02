@@ -1,222 +1,62 @@
-import React, { useState } from 'react';
-import './App.css';
-import axios from 'axios';
-import Navbar from './components/Navbar';
-import BottomBar from './components/BottomBar';
-import MapView from './components/MapView';
-import InvasionSync from './components/InvasionSync';
-import AlienManager from './components/AlienManager';
-import TakilaManager from './components/TakilaManager';
-import FighterManager from './components/FighterManager';
-import ShotManager from './components/ShotManager';
-import ExplosionManager from './components/ExplosionManager';
-import DefenseManager from './components/DefenseManager';
-import FighterMovementManager from './components/FighterMovementManager';
-import BattleManager from './components/BattleManager';
-import ConfirmDialog from './components/ConfirmDialog';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import Navbar from './Navbar';
+import BottomBar from './BottomBar';
+import AnimationEngine from './AnimationEngine';
+import ShotRenderer from './ShotRenderer';
+import { fetchSnapshot } from './api';
 
 export default function App() {
-  const [landings, setLandings] = useState([]);
-  const [aliens, setAliens] = useState([]);
-  const [takilas, setTakilas] = useState([]);
-  const [fighters, setFighters] = useState([]);
-  const [shots, setShots] = useState([]);
-  const [explosions, setExplosions] = useState([]);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [gameState, setGameState] = useState({ aliens: [], fighters: [], takilas: [], landings: [], shots: [] });
 
-  const [createMode, setCreateMode] = useState(false);
-  const [createTakilaMode, setCreateTakilaMode] = useState(false);
-  const [cursorStyle, setCursorStyle] = useState("default");
-  const [showConfirmDeleteAll, setShowConfirmDeleteAll] = useState(false);
-  const [showConfirmDeleteTakilas, setShowConfirmDeleteTakilas] = useState(false);
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const snapshot = await fetchSnapshot();
+      setGameState(snapshot);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const handleMapClick = async (latlng) => {
-    if (createTakilaMode) {
-      setCreateTakilaMode(false);
-      setCursorStyle("default");
-      try {
-        await axios.post('https://e-38.onrender.com/api/create-takila', { lat: latlng.lat, lng: latlng.lng });
-        console.log('🚙 Takila created at', latlng.lat, latlng.lng);
-      } catch (err) {
-        console.error('❌ Failed to create takila:', err.message);
-      }
-      return;
-    }
-
-    if (!createMode) return;
-    setCreateMode(false);
-    setCursorStyle("default");
-
-    const landingId = Date.now();
-
- const landingFeature = {
-  type: "Feature",
-  geometry: { type: "Point", coordinates: [latlng.lng, latlng.lat] },
-  properties: { type: "landing", id: landingId }
-};
-
-
-    try {
-      await axios.post('https://e-38.onrender.com/api/update-invasion', {
-        type: "FeatureCollection",
-        features: [landingFeature]
-      });
-      console.log('🛸 Landing created on server');
-
-      const directions = [0, 45, 90, 135, 180, 225, 270, 315];
-      for (let index = 0; index < directions.length; index++) {
-        const alienCode = String.fromCharCode(65 + (landings.length % 26)) + (index + 1);
-        await axios.post('https://e-38.onrender.com/api/create-alien', {
-          lat: latlng.lat,
-          lng: latlng.lng,
-          landingId,
-          alienCode
-        });
-        console.log(`👽 Alien ${alienCode} created`);
-      }
-    } catch (err) {
-      console.error('❌ Failed to create landing or aliens:', err.message);
-    }
+  const handleClearAliensLandings = async () => {
+    await fetch('/api/clear-landings-aliens', { method: 'DELETE' });
   };
 
-  const handleJump = () => {
-    setCreateTakilaMode(true);
-    setCursorStyle("url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Parachute.svg/32px-Parachute.svg.png') 16 16, crosshair");
+  const handleClearTakilasFighters = async () => {
+    await fetch('/api/clear-takilas-fighters', { method: 'DELETE' });
   };
 
-  const handleCallback = () => {
-    setShowConfirmDeleteTakilas(true);
+  const handleCreateLanding = async () => {
+    await fetch('/api/create-landing', { method: 'POST' });
   };
 
-  const handleConfirmDeleteTakilas = async () => {
-    setShowConfirmDeleteTakilas(false);
-    try {
-      await fetch('https://e-38.onrender.com/api/takilas', { method: 'DELETE' });
-      setTakilas([]);
-      setFighters([]);
-      console.log('🧹 Deleted takilas and fighters locally and remotely.');
-    } catch (err) {
-      console.error('❌ Failed to delete takilas:', err.message);
-    }
+  const handleCreateTakila = async () => {
+    await fetch('/api/create-takila', { method: 'POST' });
   };
 
-  const handleConfirmDeleteAll = async () => {
-    setShowConfirmDeleteAll(false);
-    try {
-      await fetch('https://e-38.onrender.com/api/clear-all', { method: 'DELETE' });
-      setLandings([]);
-      setAliens([]);
-      setTakilas([]);
-      setFighters([]);
-      setShots([]);
-      setExplosions([]);
-      console.log('🧹 Cleared all data');
-    } catch (err) {
-      console.error('❌ Failed to clear all:', err.message);
-    }
-  };
-
-return (
-  <div className="app-layout" style={{ cursor: cursorStyle }}>
-    <div className="map-container">
-      <ShotManager
-        fighters={fighters}
-        aliens={aliens}
-        setAliens={setAliens}
-        setExplosions={setExplosions}
-        setFighters={setFighters}
-      >
-        {(shots) => (
-          <MapView
-            center={[32.08, 34.78]}
-            landings={landings}
-            aliens={aliens}
-            takilas={takilas}
-            fighters={fighters}
-            explosions={explosions}
-            shots={shots}
-            onMapClick={handleMapClick}
-          />
-        )}
-      </ShotManager>
-    </div>
-
-    <div className="navbar">
+  return (
+    <>
       <Navbar
-        landingCount={landings.length}
-        alienCount={aliens.length}
-        onActivateCreate={() => {
-          setCreateMode(true);
-          setCursorStyle("crosshair");
-        }}
-        onRequestClearAll={() => setShowConfirmDeleteAll(true)}
+        landingCount={gameState.landings.length}
+        alienCount={gameState.aliens.length}
+        onActivateCreate={handleCreateLanding}
+        onRequestClearAll={handleClearAliensLandings}
       />
-    </div>
 
-    <div className="bottombar">
+      <MapContainer center={[32, 34]} zoom={13} style={{ height: '90vh' }}>
+        <TileLayer
+          attribution="&copy; OpenStreetMap"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <AnimationEngine gameState={gameState} />
+        <ShotRenderer gameState={gameState} />
+      </MapContainer>
+
       <BottomBar
-        onJump={handleJump}
-        onCallback={handleCallback}
-        fighters={fighters}
-        takilas={takilas}
+        fighters={gameState.fighters}
+        takilas={gameState.takilas}
+        onJump={handleCreateTakila}
+        onCallback={handleClearTakilasFighters}
       />
-    </div>
-
-    {showConfirmDeleteTakilas && (
-      <ConfirmDialog
-        message="Are you sure you want to delete all Takilas?"
-        onConfirm={handleConfirmDeleteTakilas}
-        onCancel={() => setShowConfirmDeleteTakilas(false)}
-      />
-    )}
-
-    {showConfirmDeleteAll && (
-      <ConfirmDialog
-        message="Are you sure you want to delete all landings?"
-        onConfirm={handleConfirmDeleteAll}
-        onCancel={() => setShowConfirmDeleteAll(false)}
-      />
-    )}
-
-    <InvasionSync
-      landings={landings}
-      aliens={aliens}
-      setLandings={setLandings}
-      setAliens={setAliens}
-      setTakilas={setTakilas}
-      setFighters={setFighters}
-      setShots={setShots}
-      setExplosions={setExplosions}
-      isDeleting={isDeleting}
-    />
-
-    <BattleManager
-      fighters={fighters}
-      aliens={aliens}
-      landings={landings}
-      setAliens={setAliens}
-      setFighters={setFighters}
-      setShots={setShots}
-      setExplosions={setExplosions}
-    />
-
-    <AlienManager aliens={aliens} setAliens={setAliens} />
-    <TakilaManager takilas={takilas} setTakilas={setTakilas} />
-    <FighterManager takilas={takilas} aliens={aliens} />
-    <DefenseManager
-      fighters={fighters}
-      aliens={aliens}
-      setFighters={setFighters}
-      setExplosions={setExplosions}
-    />
-    <ExplosionManager explosions={explosions} setExplosions={setExplosions} />
-    <FighterMovementManager
-      fighters={fighters}
-      setFighters={setFighters}
-      aliens={aliens}
-      setTakilas={setTakilas}
-    />
-  </div>
-);
-
-} 
+    </>
+  );
+}

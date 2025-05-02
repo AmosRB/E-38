@@ -17,6 +17,8 @@ html, body, #root {
   right: 0;
   height: 50px;
   z-index: 1000;
+  background-color: black;
+  color: white;
 }
 
 .bottombar {
@@ -26,4 +28,6 @@ html, body, #root {
   right: 0;
   height: 50px;
   z-index: 1000;
+  background-color: black;
+  color: white;
 }

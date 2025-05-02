@@ -5,13 +5,9 @@ html, body, #root {
   overflow: hidden;
 }
 
-.map-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
+.leaflet-container {
+  height: 100%;
+  width: 100%;
 }
 
 .navbar {
@@ -19,14 +15,8 @@ html, body, #root {
   top: 0;
   left: 0;
   right: 0;
+  height: 50px;
   z-index: 1000;
-  background-color: black;
-  color: white;
-  padding: 0.5em 1em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 .bottombar {
@@ -34,14 +24,6 @@ html, body, #root {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background-color: black;
-  color: white;
   height: 50px;
-  font-size: 16px;
-  padding: 0 10px;
-  flex-wrap: wrap;
+  z-index: 1000;
 }

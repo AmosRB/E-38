@@ -1,5 +1,24 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents,  } from 'react-leaflet';
+import L from 'leaflet';
+
+function ClickHandler({ onMapClick }) {
+  useMapEvents({
+    click(e) {
+      if (onMapClick) onMapClick(e);
+    },
+  });
+  return null;
+}
+function createEmojiIcon(emoji, label = '') {
+  return L.divIcon({
+    html: `<div style="font-size: 24px;">${emoji}</div><div style="font-size:10px;">${label}</div>`,
+    className: '',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  });
+}
+
 
 export default function MapView({ center, landings, aliens, takilas, fighters, explosions, shots, onMapClick }) {
   const getPosition = (item) =>

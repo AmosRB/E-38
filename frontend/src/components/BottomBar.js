@@ -1,6 +1,7 @@
 import React from 'react';
 
 export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
+   return (
  <div className="bottombar" style={{
   display: 'flex',
   justifyContent: 'space-between',
@@ -82,5 +83,5 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         }
       `}</style>
     </div>
-  )
+  );
 }

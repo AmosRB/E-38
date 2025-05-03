@@ -82,5 +82,5 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         }
       `}</style>
     </div>
-  );
+  )
 }

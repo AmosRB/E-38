@@ -2,8 +2,17 @@ import React from 'react';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (
-    <div className="navbar">
-      {/* כפתור TAKE OFF */}
+    <div className="navbar" style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '10px',
+      position: 'fixed',
+      top: '0',
+      width: '100%',
+      background: '#1e1e1e',
+      zIndex: 1000
+    }}>
       <button onClick={onRequestClearAll} style={{
         background: '#2c2c2c',
         color: '#ff0033',
@@ -16,16 +25,19 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         letterSpacing: '1px',
         boxShadow: '0 0 8px #ff0033',
         transition: '0.3s',
-        width: '100%',
-        marginBottom: '5px'
+        marginRight: '10px'
       }}>
         TAKE OFF
       </button>
 
-      {/* ספירות עם כדור הארץ */}
-      <div className="nav-status" style={{ display: 'flex', alignItems: 'center', fontSize: '16px', justifyContent: 'center', width: '100%', margin: '5px 0' }}>
+      <div className="nav-status" style={{
+        display: 'flex',
+        alignItems: 'center',
+        fontSize: '16px',
+        justifyContent: 'center'
+      }}>
         <span style={{ marginRight: '10px' }}>🛸 {landingCount}</span>
-        <span className="earth" style={{
+        <span style={{
           display: 'inline-block',
           animation: 'spin 4s linear infinite',
           margin: '0 10px'
@@ -35,7 +47,6 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         <span>👽 {alienCount}</span>
       </div>
 
-      {/* כפתור LANDING */}
       <button onClick={onActivateCreate} style={{
         background: '#2c2c2c',
         color: '#cc66ff',
@@ -48,12 +59,11 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         letterSpacing: '1px',
         boxShadow: '0 0 8px #cc66ff',
         transition: '0.3s',
-        width: '100%'
+        marginLeft: '10px'
       }}>
         ⚡ LANDING
       </button>
 
-      {/* אנימציה לסיבוב כדור הארץ */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }

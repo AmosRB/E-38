@@ -28,7 +28,20 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
 
   return (
     <>
-      <MapContainer center={center} zoom={12} style={{ height: '100vh', width: '100%' }}>
+      <MapContainer
+  center={center}
+  zoom={12}
+  style={{
+    height: '100vh',
+    width: '100vw',  // במקום 100%
+    margin: '0',
+    padding: '0',
+    position: 'absolute',
+    top: '0',
+    left: '0'
+  }}
+>
+
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
         <ClickHandler onMapClick={onMapClick} />
 

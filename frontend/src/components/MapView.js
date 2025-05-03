@@ -1,3 +1,6 @@
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+
 export default function MapView({ center, landings, aliens, takilas, fighters, explosions, shots, onMapClick }) {
   const getPosition = (item) =>
     item.route && item.route.length > 0 && item.positionIdx !== undefined

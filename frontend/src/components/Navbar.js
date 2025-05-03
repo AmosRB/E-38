@@ -2,17 +2,21 @@ import React from 'react';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (
-    <div className="navbar" style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '10px',
-      position: 'fixed',
-      top: '0',
-      width: '100%',
-      background: '#1e1e1e',
-      zIndex: 1000
-    }}>
+   <div className="navbar" style={{
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '10px',
+  position: 'fixed',
+  top: '0',
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+  overflow: 'hidden',
+  background: '#1e1e1e',
+  zIndex: 1000
+}}>
+
       <button onClick={onRequestClearAll} style={{
         background: '#2c2c2c',
         color: '#ff0033',

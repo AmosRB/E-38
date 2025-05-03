@@ -2,8 +2,17 @@ import React from 'react';
 
 export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
   return (
-    <div className="bottombar" style={{ width: '100%' }}>
-      
+    <div className="bottombar" style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '10px',
+      position: 'fixed',
+      bottom: '0',
+      width: '100%',
+      background: '#1e1e1e',
+      zIndex: 1000
+    }}>
       {/* כפתור RECALL */}
       <button onClick={onCallback} style={{
         background: '#2c2c2c',
@@ -12,11 +21,12 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         padding: '6px 12px',
         borderRadius: '8px',
         cursor: 'pointer',
-        fontSize: '14px',
+        fontSize: '12px',
         fontWeight: 'bold',
         letterSpacing: '1px',
         boxShadow: '0 0 8px #00ccff',
-        transition: '0.3s'
+        transition: '0.3s',
+        marginRight: '10px'
       }}>
         RECALL
       </button>
@@ -42,20 +52,30 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         padding: '6px 12px',
         borderRadius: '8px',
         cursor: 'pointer',
-        fontSize: '14px',
+        fontSize: '12px',
         fontWeight: 'bold',
         letterSpacing: '1px',
         boxShadow: '0 0 8px #00ff00',
-        transition: '0.3s'
+        transition: '0.3s',
+        marginLeft: '10px'
       }}>
         JUMP ⚡
       </button>
 
-      {/* אנימציית כדור הארץ */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+          .bottombar button {
+            font-size: 10px;
+            padding: 4px 6px;
+          }
+          .bottombar {
+            font-size: 12px;
+          }
         }
       `}</style>
     </div>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
-import Navbar from './Navbar';
-import BottomBar from './BottomBar';
-import AnimationEngine from './AnimationEngine';
-import ShotRenderer from './ShotRenderer';
-import { fetchSnapshot } from './api';
+import Navbar from './components/Navbar';
+import BottomBar from './components/BottomBar';
+import ShotRenderer from './components/ShotRenderer';
+import { fetchSnapshot } from './components/api';
+import MapView from './components/MapView';
+import './App.css';
 
 export default function App() {
   const [gameState, setGameState] = useState({ aliens: [], fighters: [], takilas: [], landings: [], shots: [] });
@@ -34,7 +35,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <div>
       <Navbar
         landingCount={gameState.landings.length}
         alienCount={gameState.aliens.length}
@@ -42,14 +43,16 @@ export default function App() {
         onRequestClearAll={handleClearAliensLandings}
       />
 
-      <MapContainer center={[32, 34]} zoom={13} style={{ height: '90vh' }}>
-        <TileLayer
-          attribution="&copy; OpenStreetMap"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <AnimationEngine gameState={gameState} />
-        <ShotRenderer gameState={gameState} />
-      </MapContainer>
+<MapView
+  center={[32, 34]}
+  landings={gameState.landings}
+  aliens={gameState.aliens}
+  takilas={gameState.takilas}
+  fighters={gameState.fighters}
+  shots={gameState.shots}
+  explosions={[]} // כרגע ריק, אלא אם תוסיף בהמשך
+  onMapClick={() => {}} // תוכל לחבר פונקציה בהמשך
+/>
 
       <BottomBar
         fighters={gameState.fighters}
@@ -57,6 +60,6 @@ export default function App() {
         onJump={handleCreateTakila}
         onCallback={handleClearTakilasFighters}
       />
-    </>
+    </div>
   );
 }

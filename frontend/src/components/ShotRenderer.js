@@ -1,5 +1,7 @@
 import { Polyline, useMap } from 'react-leaflet';
 import { useEffect } from 'react';
+import L from 'leaflet';
+
 
 export default function ShotRenderer({ gameState }) {
   const map = useMap();

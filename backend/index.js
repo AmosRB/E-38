@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -13,11 +13,37 @@ let takilas = [];
 let landings = [];
 let shots = [];
 
+// פונקציה לייצור route קצר אקראי
+function generateRoute(lat, lng, points = 5) {
+  const route = [];
+  for (let i = 0; i < points; i++) {
+    route.push([lat + (Math.random() - 0.5) * 0.01, lng + (Math.random() - 0.5) * 0.01]);
+  }
+  return route;
+}
+
 // אתחול דוגמתי
 for (let i = 0; i < 8; i++) {
-  aliens.push({ id: i, lat: 32 + Math.random() * 0.01, lng: 34 + Math.random() * 0.01, hitCount: 0 });
+  const route = generateRoute(32, 34);
+  aliens.push({
+    id: i,
+    lat: route[0][0],
+    lng: route[0][1],
+    hitCount: 0,
+    route,
+    positionIdx: 0
+  });
 }
-takilas.push({ id: 100, lat: 32, lng: 34, status: 'WAITING', fightersCount: 4 });
+const takilaRoute = generateRoute(32, 34);
+takilas.push({
+  id: 100,
+  lat: takilaRoute[0][0],
+  lng: takilaRoute[0][1],
+  status: 'WAITING',
+  fightersCount: 4,
+  route: takilaRoute,
+  positionIdx: 0
+});
 landings.push({ id: 200, lat: 32.005, lng: 34.005, hitCount: 0 });
 
 for (let i = 0; i < 4; i++) {
@@ -37,8 +63,22 @@ setInterval(() => {
   shots = [];
 
   aliens.forEach(a => {
-    a.lat += (Math.random() - 0.5) * 0.0005;
-    a.lng += (Math.random() - 0.5) * 0.0005;
+    if (a.route) {
+      a.positionIdx = (a.positionIdx + 1) % a.route.length;
+      a.lat = a.route[a.positionIdx][0];
+      a.lng = a.route[a.positionIdx][1];
+    } else {
+      a.lat += (Math.random() - 0.5) * 0.0005;
+      a.lng += (Math.random() - 0.5) * 0.0005;
+    }
+  });
+
+  takilas.forEach(t => {
+    if (t.route) {
+      t.positionIdx = (t.positionIdx + 1) % t.route.length;
+      t.lat = t.route[t.positionIdx][0];
+      t.lng = t.route[t.positionIdx][1];
+    }
   });
 
   fighters.forEach(f => {
@@ -117,9 +157,11 @@ app.get('/api/snapshot', (req, res) => {
 // API יצירת נחיתה חדשה
 app.post('/api/create-landing', (req, res) => {
   const id = Date.now();
-  landings.push({ id, lat: 32 + Math.random() * 0.01, lng: 34 + Math.random() * 0.01, hitCount: 0 });
+  const route = generateRoute(32, 34);
+  landings.push({ id, lat: route[0][0], lng: route[0][1], hitCount: 0, route, positionIdx: 0 });
   for (let i = 0; i < 8; i++) {
-    aliens.push({ id: Date.now() + i, lat: 32 + Math.random() * 0.01, lng: 34 + Math.random() * 0.01, hitCount: 0 });
+    const aRoute = generateRoute(32, 34);
+    aliens.push({ id: Date.now() + i, lat: aRoute[0][0], lng: aRoute[0][1], hitCount: 0, route: aRoute, positionIdx: 0 });
   }
   res.json({ message: 'Landing created' });
 });
@@ -127,7 +169,8 @@ app.post('/api/create-landing', (req, res) => {
 // API יצירת טקילה חדשה
 app.post('/api/create-takila', (req, res) => {
   const id = Date.now();
-  takilas.push({ id, lat: 32 + Math.random() * 0.01, lng: 34 + Math.random() * 0.01, status: 'WAITING', fightersCount: 4 });
+  const route = generateRoute(32, 34);
+  takilas.push({ id, lat: route[0][0], lng: route[0][1], status: 'WAITING', fightersCount: 4, route, positionIdx: 0 });
   for (let i = 0; i < 4; i++) {
     fighters.push({ id: Date.now() + i, lat: 32, lng: 34, takilaId: id, targetId: null, phase: 'exit', isAlive: true });
   }
@@ -146,6 +189,12 @@ app.delete('/api/clear-takilas-fighters', (req, res) => {
   takilas = [];
   fighters = [];
   res.json({ message: 'Takilas and fighters cleared' });
+});
+
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

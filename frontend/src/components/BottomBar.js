@@ -1,13 +1,10 @@
-// ✅ BottomBar.js מתוקן - חלון צף בתחתית עם עיצוב מקורי
-
 import React from 'react';
 
 export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
   return (
-
     <div className="bottombar" style={{ width: '100%' }}>
-
-      {/* RECALL כפתור */}
+      
+      {/* כפתור RECALL */}
       <button onClick={onCallback} style={{
         background: '#2c2c2c',
         color: '#00ccff',
@@ -24,7 +21,7 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         RECALL
       </button>
 
-      {/* קאונטר טקסט עם כדור הארץ מסתובב */}
+      {/* טקסט עם ספירת לוחמים וטקילות + כדור הארץ מסתובב */}
       <div style={{ display: 'flex', alignItems: 'center', fontSize: '16px' }}>
         <span style={{ marginRight: '10px' }}>🧍 {fighters.length}</span>
         <span style={{
@@ -37,7 +34,7 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         <span>🚙 {takilas.length}</span>
       </div>
 
-      {/* JUMP כפתור */}
+      {/* כפתור JUMP */}
       <button onClick={onJump} style={{
         background: '#2c2c2c',
         color: '#00ff00',
@@ -54,16 +51,13 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         JUMP ⚡
       </button>
 
-      {/* אנימציה לסיבוב כדור הארץ */}
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}
-      </style>
-
+      {/* אנימציית כדור הארץ */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

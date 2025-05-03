@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -13,7 +14,6 @@ let takilas = [];
 let landings = [];
 let shots = [];
 
-// פונקציה לייצור route קצר אקראי
 function generateRoute(lat, lng, points = 5) {
   const route = [];
   for (let i = 0; i < points; i++) {
@@ -22,7 +22,6 @@ function generateRoute(lat, lng, points = 5) {
   return route;
 }
 
-// אתחול דוגמתי
 for (let i = 0; i < 8; i++) {
   const route = generateRoute(32, 34);
   aliens.push({ id: i, lat: route[0][0], lng: route[0][1], hitCount: 0, route, positionIdx: 0 });
@@ -120,7 +119,7 @@ setInterval(() => {
 
 }, 1000);
 
-// ✅ כאן לפני catch-all
+// ✅ API endpoints
 app.get('/api/snapshot', (req, res) => {
   res.json({ aliens, fighters, takilas, landings, shots });
 });
@@ -158,10 +157,8 @@ app.delete('/api/clear-takilas-fighters', (req, res) => {
   res.json({ message: 'Takilas and fighters cleared' });
 });
 
-// ✅ סטטי של React
+// ✅ Static + catch-all
 app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-// ✅ catch-all רק בסוף
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });

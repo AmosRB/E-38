@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import BottomBar from './components/BottomBar';
 import MapView from './components/MapView';
-import { fetchSnapshot } from './components/api';
+import { fetchSnapshot, createLanding } from './components/api';
 import './App.css';
 
 export default function App() {
@@ -77,15 +77,13 @@ export default function App() {
         fighters={gameState.fighters}
         shots={gameState.shots}
         explosions={[]}
-        onMapClick={async (latlng) => {
-          if (isPlacingLanding) {
-            await fetch('/api/create-landing', { 
-              method: 'POST', 
-              body: JSON.stringify({ latlng }), 
-              headers: { 'Content-Type': 'application/json' } 
-            });
-            setIsPlacingLanding(false);
-          }
+ onMapClick={async (latlng) => {
+  if (isPlacingLanding) {
+    await createLanding(latlng);
+    setIsPlacingLanding(false);
+  }
+}}
+
         }}
       />
 

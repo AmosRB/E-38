@@ -38,9 +38,7 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas, fight
 
       {/* טקסט עם ספירת לוחמים וטקילות + כדור הארץ מסתובב */}
       <div style={{ display: 'flex', alignItems: 'center', fontSize: '16px' }}>
-        <span style={{ color: 'white', fontSize: '16px' }}>
-   {typeof fightersCount === 'number' ? fightersCount : 0} 🧍 
-</span>
+
        <span style={{ color: 'white', fontSize: '16px' }}>
           🧍 {typeof fightersCount === 'number' ? fightersCount : 0}
         </span>

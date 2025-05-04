@@ -12,7 +12,6 @@ function ClickHandler({ onMapClick }) {
   return null;
 }
 
-
 function createEmojiIcon(emoji, label = '') {
   return L.divIcon({
     html: `<div style="font-size: 24px;">${emoji}</div><div style="font-size:10px;">${label}</div>`,
@@ -43,27 +42,27 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
         </Marker>
       ))}
 
-   {aliens.map(a => (
-  <React.Fragment key={`alien-${a.id}`}>
-    <Marker position={getPosition(a)} icon={createEmojiIcon('👽', a.alienCode)}>
-      <Popup>{`Alien ${a.alienCode}`}</Popup>
-    </Marker>
-    {a.route && a.route.length > 0 && (
-      <Polyline positions={a.route.map(p => [p[0], p[1]])} color="purple" />
-    )}
-  </React.Fragment>
-))}
+      {aliens.map(a => (
+        <React.Fragment key={`alien-${a.id}`}>
+          <Marker position={getPosition(a)} icon={createEmojiIcon('👽', a.alienCode)}>
+            <Popup>{`Alien ${a.alienCode}`}</Popup>
+          </Marker>
+          {a.route && a.route.length > 0 && (
+            <Polyline positions={a.route.map(p => [p[0], p[1]])} color="purple" />
+          )}
+        </React.Fragment>
+      ))}
 
-{takilas.map(t => (
-  <React.Fragment key={`takila-${t.id}`}>
-    <Marker position={getPosition(t)} icon={createEmojiIcon('🚙', t.takilaCode)}>
-      <Popup>{`Takila ${t.takilaCode}`}</Popup>
-    </Marker>
-    {t.route && t.route.length > 0 && (
-      <Polyline positions={t.route.map(p => [p[0], p[1]])} color="orange" />
-    )}
-  </React.Fragment>
-))}
+      {takilas.map(t => (
+        <React.Fragment key={`takila-${t.id}`}>
+          <Marker position={getPosition(t)} icon={createEmojiIcon('🚙', t.takilaCode)}>
+            <Popup>{`Takila ${t.takilaCode}`}</Popup>
+          </Marker>
+          {t.route && t.route.length > 0 && (
+            <Polyline positions={t.route.map(p => [p[0], p[1]])} color="orange" />
+          )}
+        </React.Fragment>
+      ))}
 
       {fighters.map(f => (
         <Marker key={`fighter-${f.id}`} position={getPosition(f)} icon={createEmojiIcon('🧍', f.phase)}>

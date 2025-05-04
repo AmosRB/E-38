@@ -37,7 +37,9 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
 
       {/* טקסט עם ספירת לוחמים וטקילות + כדור הארץ מסתובב */}
       <div style={{ display: 'flex', alignItems: 'center', fontSize: '16px' }}>
-        <span style={{ marginRight: '10px' }}>🧍 {fighters.length}</span>
+        <span style={{ color: 'white', fontSize: '16px' }}>
+   {typeof fightersCount === 'number' ? fightersCount : 0} 🧍 
+</span>
         <span style={{
           display: 'inline-block',
           animation: 'spin 4s linear infinite',
@@ -45,8 +47,10 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         }}>
           🌍
         </span>
-        <span>🚙 {takilas.length}</span>
-      </div>
+     <span style={{ color: 'white', fontSize: '16px' }}> 
+  🚙 {typeof takilasCount === 'number' ? takilasCount : 0}
+</span>
+
 
       {/* כפתור JUMP */}
       <button onClick={onJump} style={{

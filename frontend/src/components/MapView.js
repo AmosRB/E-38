@@ -43,22 +43,28 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
         </Marker>
       ))}
 
-      {aliens.map(a => (
-        <React.Fragment key={`alien-${a.id}`}>
-          <Marker position={getPosition(a)} icon={createEmojiIcon('👽', a.alienCode)}>
-            <Popup>{`Alien ${a.alienCode}`}</Popup>
-          </Marker>
-          {a.route && a.route.length > 0 && (
-            <Polyline positions={a.route.map(p => [p[0], p[1]])} color="purple" />
-          )}
-        </React.Fragment>
-      ))}
+   {aliens.map(a => (
+  <React.Fragment key={`alien-${a.id}`}>
+    <Marker position={getPosition(a)} icon={createEmojiIcon('👽', a.alienCode)}>
+      <Popup>{`Alien ${a.alienCode}`}</Popup>
+    </Marker>
+    {a.route && a.route.length > 0 && (
+      <Polyline positions={a.route.map(p => [p[0], p[1]])} color="purple" />
+    )}
+  </React.Fragment>
+))}
 
-      {takilas.map(t => (
-        <Marker key={`takila-${t.id}`} position={getPosition(t)} icon={createEmojiIcon('🚙', t.takilaCode)}>
-          <Popup>{`Takila ${t.takilaCode}`}</Popup>
-        </Marker>
-      ))}
+{takilas.map(t => (
+  <React.Fragment key={`takila-${t.id}`}>
+    <Marker position={getPosition(t)} icon={createEmojiIcon('🚙', t.takilaCode)}>
+      <Popup>{`Takila ${t.takilaCode}`}</Popup>
+    </Marker>
+    {t.route && t.route.length > 0 && (
+      <Polyline positions={t.route.map(p => [p[0], p[1]])} color="orange" />
+    )}
+  </React.Fragment>
+))}
+
 
       {fighters.map(f => (
         <Marker key={`fighter-${f.id}`} position={getPosition(f)} icon={createEmojiIcon('🧍', f.phase)}>

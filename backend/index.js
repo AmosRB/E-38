@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -43,9 +42,6 @@ setInterval(() => {
       a.positionIdx = (a.positionIdx + 1) % a.route.length;
       a.lat = a.route[a.positionIdx][0];
       a.lng = a.route[a.positionIdx][1];
-    } else {
-      a.lat += (Math.random() - 0.5) * 0.0005;
-      a.lng += (Math.random() - 0.5) * 0.0005;
     }
   });
 
@@ -70,7 +66,10 @@ setInterval(() => {
     f.lng += dy * 0.01;
 
     if (dist < 0.3) {
-      shots.push({ fromLat: f.lat, fromLng: f.lng, toLat: target.lat, toLng: target.lng, type: 'fighter', timestamp: now });
+      shots.push({
+        geometry: { coordinates: [[f.lng, f.lat], [target.lng, target.lat]] },
+        properties: { shotType: 'fighter', timestamp: now },
+      });
       target.hitCount += 1;
     }
   });
@@ -82,7 +81,10 @@ setInterval(() => {
       const dy = a.lng - f.lng;
       const dist = Math.sqrt(dx * dx + dy * dy) * 111;
       if (dist < 0.2) {
-        shots.push({ fromLat: a.lat, fromLng: a.lng, toLat: f.lat, toLng: f.lng, type: 'alien', timestamp: now });
+        shots.push({
+          geometry: { coordinates: [[a.lng, a.lat], [f.lng, f.lat]] },
+          properties: { shotType: 'alien', timestamp: now },
+        });
         f.isAlive = false;
         const takila = takilas.find(t => t.id === f.takilaId);
         if (takila) takila.fightersCount -= 1;
@@ -96,7 +98,10 @@ setInterval(() => {
       const dy = t.lng - l.lng;
       const dist = Math.sqrt(dx * dx + dy * dy) * 111;
       if (dist < 1.5) {
-        shots.push({ fromLat: t.lat, fromLng: t.lng, toLat: l.lat, toLng: l.lng, type: 'takila', timestamp: now });
+        shots.push({
+          geometry: { coordinates: [[t.lng, t.lat], [l.lng, l.lat]] },
+          properties: { shotType: 'takila', timestamp: now },
+        });
         l.hitCount += 1;
       }
     });
@@ -108,7 +113,10 @@ setInterval(() => {
       const dy = l.lng - t.lng;
       const dist = Math.sqrt(dx * dx + dy * dy) * 111;
       if (dist < 1) {
-        shots.push({ fromLat: l.lat, fromLng: l.lng, toLat: t.lat, toLng: t.lng, type: 'landing', timestamp: now });
+        shots.push({
+          geometry: { coordinates: [[l.lng, l.lat], [t.lng, t.lat]] },
+          properties: { shotType: 'landing', timestamp: now },
+        });
       }
     });
   });
@@ -121,7 +129,29 @@ setInterval(() => {
 
 // ✅ API endpoints
 app.get('/api/snapshot', (req, res) => {
-  res.json({ aliens, fighters, takilas, landings, shots });
+  res.json({
+    aliens: aliens.map(a => ({
+      ...a,
+      lat: a.route[a.positionIdx][0],
+      lng: a.route[a.positionIdx][1],
+    })),
+    fighters: fighters.map(f => ({
+      ...f,
+      lat: f.lat,
+      lng: f.lng,
+    })),
+    takilas: takilas.map(t => ({
+      ...t,
+      lat: t.route[t.positionIdx][0],
+      lng: t.route[t.positionIdx][1],
+    })),
+    landings: landings.map(l => ({
+      ...l,
+      lat: l.route ? l.route[l.positionIdx][0] : l.lat,
+      lng: l.route ? l.route[l.positionIdx][1] : l.lng,
+    })),
+    shots,
+  });
 });
 
 app.post('/api/create-landing', (req, res) => {
@@ -138,7 +168,7 @@ app.post('/api/create-landing', (req, res) => {
 app.post('/api/create-takila', (req, res) => {
   const id = Date.now();
   const route = generateRoute(32, 34);
-  takilas.push({ id, lat: route[0][0], lng: route[0][1], status: 'WAITING', fightersCount: 4, route, positionIdx: 0 });
+  takilas.push({ id, lat: route[0][0], lng: route[0][1], status: 'WAITING', fightersCount: 4, route: route, positionIdx: 0 });
   for (let i = 0; i < 4; i++) {
     fighters.push({ id: Date.now() + i, lat: 32, lng: 34, takilaId: id, targetId: null, phase: 'exit', isAlive: true });
   }

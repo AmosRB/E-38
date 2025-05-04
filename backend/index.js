@@ -154,12 +154,15 @@ app.get('/api/snapshot', (req, res) => {
   });
 });
 
+app.use(express.json());
+
 app.post('/api/create-landing', (req, res) => {
+  const { latlng } = req.body;
   const id = Date.now();
-  const route = generateRoute(32, 34);
+  const route = generateRoute(latlng[0], latlng[1]);
   landings.push({ id, lat: route[0][0], lng: route[0][1], hitCount: 0, route, positionIdx: 0 });
   for (let i = 0; i < 8; i++) {
-    const aRoute = generateRoute(32, 34);
+    const aRoute = generateRoute(latlng[0], latlng[1]);
     aliens.push({ id: Date.now() + i, lat: aRoute[0][0], lng: aRoute[0][1], hitCount: 0, route: aRoute, positionIdx: 0 });
   }
   res.json({ message: 'Landing created' });

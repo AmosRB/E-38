@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
 import Navbar from './components/Navbar';
 import BottomBar from './components/BottomBar';
-import ShotRenderer from './components/ShotRenderer';
 import { fetchSnapshot } from './components/api';
 import MapView from './components/MapView';
 import './App.css';
 
 export default function App() {
-  const [gameState, setGameState] = useState({ aliens: [], fighters: [], takilas: [], landings: [], shots: [] });
+  const [gameState, setGameState] = useState({
+    landings: [],
+    aliens: [],
+    takilas: [],
+    fighters: [],
+    shots: []
+  });
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -35,31 +39,37 @@ export default function App() {
   };
 
   return (
-    <div>
-      <Navbar
-        landingCount={gameState.landings.length}
-        alienCount={gameState.aliens.length}
-        onActivateCreate={handleCreateLanding}
-        onRequestClearAll={handleClearAliensLandings}
-      />
+    <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
+      <div style={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
+        <Navbar
+          landingCount={gameState.landings.length}
+          alienCount={gameState.aliens.length}
+          onActivateCreate={handleCreateLanding}
+          onRequestClearAll={handleClearAliensLandings}
+        />
+      </div>
 
-<MapView
-  center={[32, 34]}
-  landings={gameState.landings}
-  aliens={gameState.aliens}
-  takilas={gameState.takilas}
-  fighters={gameState.fighters}
-  shots={gameState.shots}
-  explosions={[]} // כרגע ריק, אלא אם תוסיף בהמשך
-  onMapClick={() => {}} // תוכל לחבר פונקציה בהמשך
-/>
+      <div style={{ position: 'absolute', top: '50px', bottom: '50px', width: '100%' }}>
+        <MapView
+          center={[32, 34]}
+          landings={gameState.landings}
+          aliens={gameState.aliens}
+          takilas={gameState.takilas}
+          fighters={gameState.fighters}
+          shots={gameState.shots}
+          explosions={[]}
+          onMapClick={() => {}}
+        />
+      </div>
 
-      <BottomBar
-        fighters={gameState.fighters}
-        takilas={gameState.takilas}
-        onJump={handleCreateTakila}
-        onCallback={handleClearTakilasFighters}
-      />
+      <div style={{ position: 'fixed', bottom: 0, width: '100%', zIndex: 1000 }}>
+        <BottomBar
+          fighters={gameState.fighters}
+          takilas={gameState.takilas}
+          onJump={handleCreateTakila}
+          onCallback={handleClearTakilasFighters}
+        />
+      </div>
     </div>
   );
 }

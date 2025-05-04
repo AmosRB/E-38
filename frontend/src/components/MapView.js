@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css'; // חשוב: לוודא שזה מוטען
+import 'leaflet/dist/leaflet.css'; // חשוב לטעון
 
 function ClickHandler({ onMapClick }) {
   useMapEvents({

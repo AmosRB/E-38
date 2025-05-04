@@ -41,8 +41,8 @@ export default function App() {
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <Navbar
-   landingCount={Array.isArray(gameState.landings) ? gameState.landings.length : 0}
-  alienCount={Array.isArray(gameState.aliens) ? gameState.aliens.length : 0}
+        landingCount={Array.isArray(gameState.landings) ? gameState.landings.length : 0}
+        alienCount={Array.isArray(gameState.aliens) ? gameState.aliens.length : 0}
         onActivateCreate={handleCreateLanding}
         onRequestClearAll={handleClearAliensLandings}
       />
@@ -53,12 +53,14 @@ export default function App() {
         takilas={gameState.takilas}
         fighters={gameState.fighters}
         shots={gameState.shots}
-        explosions={[]} // במידת הצורך תוכל להוסיף גם את זה לשרת
+        explosions={[]}
         onMapClick={() => {}}
       />
       <BottomBar
-     fighters={gameState.fighters || []}
-  takilas={gameState.takilas || []}
+        fighters={gameState.fighters}
+        takilas={gameState.takilas}
+        fightersCount={Array.isArray(gameState.fighters) ? gameState.fighters.length : 0}
+        takilasCount={Array.isArray(gameState.takilas) ? gameState.takilas.length : 0}
         onJump={handleCreateTakila}
         onCallback={handleClearTakilasFighters}
       />

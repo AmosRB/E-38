@@ -1,4 +1,4 @@
-Limport React from 'react';
+import React from 'react';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (

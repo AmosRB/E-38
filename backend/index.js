@@ -120,13 +120,20 @@ app.post('/api/create-takila', async (req, res) => {
   const { latlng } = req.body;
   const id = Date.now();
   const tRoute = await getRoute(latlng[0], latlng[1]);
-  takilas.push({ id, lat: tRoute[0][0], lng: tRoute[0][1], status: 'WAITING', fightersCount: 4, route: tRoute, positionIdx: 0 });
+  
+  takilas.push({
+    id,
+    lat: tRoute[0][0],
+    lng: tRoute[0][1],
+    status: 'WAITING',
+    fightersCount: 0,  // שים לב: מתחיל ב-0 לוחמים
+    route: tRoute,
+    positionIdx: 0
+  });
 
-  for (let i = 0; i < 4; i++) {
-    fighters.push({ id: Date.now() + i, lat: latlng[0], lng: latlng[1], takilaId: id, targetId: null, phase: 'exit', isAlive: true });
-  }
   res.json({ message: 'Takila created' });
 });
+
 
 app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];

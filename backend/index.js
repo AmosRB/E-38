@@ -169,14 +169,16 @@ app.post('/api/create-landing', (req, res) => {
 });
 
 app.post('/api/create-takila', (req, res) => {
+  const { latlng } = req.body;
   const id = Date.now();
-  const route = generateRoute(32, 34);
-  takilas.push({ id, lat: route[0][0], lng: route[0][1], status: 'WAITING', fightersCount: 4, route: route, positionIdx: 0 });
+  const route = generateRoute(latlng[0], latlng[1]);
+  takilas.push({ id, lat: route[0][0], lng: route[0][1], status: 'WAITING', fightersCount: 4, route, positionIdx: 0 });
   for (let i = 0; i < 4; i++) {
-    fighters.push({ id: Date.now() + i, lat: 32, lng: 34, takilaId: id, targetId: null, phase: 'exit', isAlive: true });
+    fighters.push({ id: Date.now() + i, lat: latlng[0], lng: latlng[1], takilaId: id, targetId: null, phase: 'exit', isAlive: true });
   }
   res.json({ message: 'Takila created' });
 });
+
 
 app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];

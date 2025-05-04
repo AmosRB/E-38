@@ -41,8 +41,8 @@ export default function App() {
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <Navbar
-  landingCount={gameState.landings ? gameState.landings.length : 0}
-  alienCount={gameState.aliens ? gameState.aliens.length : 0}
+   landingCount={Array.isArray(gameState.landings) ? gameState.landings.length : 0}
+  alienCount={Array.isArray(gameState.aliens) ? gameState.aliens.length : 0}
         onActivateCreate={handleCreateLanding}
         onRequestClearAll={handleClearAliensLandings}
       />

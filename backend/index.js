@@ -21,17 +21,17 @@ function generateRoute(lat, lng, points = 5) {
   return route;
 }
 
-for (let i = 0; i < 8; i++) {
-  const route = generateRoute(32, 34);
-  aliens.push({ id: i, lat: route[0][0], lng: route[0][1], hitCount: 0, route, positionIdx: 0 });
-}
-const takilaRoute = generateRoute(32, 34);
-takilas.push({ id: 100, lat: takilaRoute[0][0], lng: takilaRoute[0][1], status: 'WAITING', fightersCount: 4, route: takilaRoute, positionIdx: 0 });
-landings.push({ id: 200, lat: 32.005, lng: 34.005, hitCount: 0 });
+// for (let i = 0; i < 8; i++) {
+//   const route = generateRoute(32, 34);
+//   aliens.push({ id: i, lat: route[0][0], lng: route[0][1], hitCount: 0, route, positionIdx: 0 });
+// }
+// const takilaRoute = generateRoute(32, 34);
+// takilas.push({ id: 100, lat: takilaRoute[0][0], lng: takilaRoute[0][1], status: 'WAITING', fightersCount: 4, route: takilaRoute, positionIdx: 0 });
+// landings.push({ id: 200, lat: 32.005, lng: 34.005, hitCount: 0 });
 
-for (let i = 0; i < 4; i++) {
-  fighters.push({ id: 500 + i, lat: 32, lng: 34, takilaId: 100, targetId: aliens[i % aliens.length].id, phase: 'chase', isAlive: true });
-}
+// for (let i = 0; i < 4; i++) {
+//   fighters.push({ id: 500 + i, lat: 32, lng: 34, takilaId: 100, targetId: aliens[i % aliens.length].id, phase: 'chase', isAlive: true });
+// }
 
 setInterval(() => {
   const now = Date.now();

@@ -33,6 +33,8 @@ export default function App() {
   const handleCreateLanding = async () => {
     await fetch('/api/create-landing', { method: 'POST' });
   };
+  const [isPlacingLanding, setIsPlacingLanding] = useState(false);
+
 
   const handleCreateTakila = async () => {
     await fetch('/api/create-takila', { method: 'POST' });
@@ -43,9 +45,10 @@ export default function App() {
       <Navbar
         landingCount={Array.isArray(gameState.landings) ? gameState.landings.length : 0}
         alienCount={Array.isArray(gameState.aliens) ? gameState.aliens.length : 0}
-        onActivateCreate={handleCreateLanding}
-        onRequestClearAll={handleClearAliensLandings}
+         onActivateCreate={() => setIsPlacingLanding(true)}
+  onRequestClearAll={handleClearAliensLandings}
       />
+    
       <MapView
         center={[31.5, 34.8]}
         landings={gameState.landings}
@@ -54,7 +57,12 @@ export default function App() {
         fighters={gameState.fighters}
         shots={gameState.shots}
         explosions={[]}
-        onMapClick={() => {}}
+        onMapClick={async (latlng) => {
+    if (isPlacingLanding) {
+      await fetch('/api/create-landing', { method: 'POST', body: JSON.stringify({ latlng }), headers: { 'Content-Type': 'application/json' } });
+      setIsPlacingLanding(false);
+    }
+  }}
       />
       <BottomBar
         fighters={gameState.fighters}

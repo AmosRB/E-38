@@ -50,7 +50,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         }}>
           🌍
         </span>
-       <span>👽 {typeof alienCount === 'number' ? alienCount : 0}</span>
+       <span style={{ color: 'white', fontSize: '16px' }}>👽 A</span>
       </div>
 
       <button onClick={onActivateCreate} style={{

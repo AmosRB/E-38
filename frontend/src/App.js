@@ -51,7 +51,7 @@ export default function App() {
 
       <div style={{ position: 'absolute', top: '50px', bottom: '50px', width: '100%' }}>
         <MapView
-          center={[34.8, 31.5]}
+          center={[31.5, 34.8]}
           landings={gameState.landings}
           aliens={gameState.aliens}
           takilas={gameState.takilas}

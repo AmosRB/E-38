@@ -86,7 +86,7 @@ setInterval(async () => {
 
   aliens = aliens.filter(a => a.hitCount < 2);
   landings = landings.filter(l => l.hitCount < 4);
-  takilas = takilas.filter(t => t.fightersCount > 0);
+
 
 }, 1000);
 

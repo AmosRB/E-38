@@ -39,13 +39,14 @@ export async function clearTakilasFighters() {
     }
 }
 
-export async function createLanding() {
-    try {
-        await fetch('/api/create-landing', { method: 'POST' });
-    } catch (error) {
-        console.error('❌ Error creating landing:', error);
-    }
+export async function createLanding(latlng) {
+  await fetch('/api/create-landing', {
+    method: 'POST',
+    body: JSON.stringify({ latlng }),
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
+
 
 export async function createTakila() {
     try {

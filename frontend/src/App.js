@@ -53,7 +53,7 @@ export default function App() {
         takilas={gameState.takilas}
         fighters={gameState.fighters}
         shots={gameState.shots}
-        explosions={[]}
+        explosions={[]} // במידת הצורך תוכל להוסיף גם את זה לשרת
         onMapClick={() => {}}
       />
       <BottomBar

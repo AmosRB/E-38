@@ -29,14 +29,39 @@ setInterval(async () => {
   }
 
   for (const t of takilas) {
-    t.positionIdx = (t.positionIdx + 1);
-    if (t.positionIdx >= t.route.length) {
-      t.route = await getRoute(t.lat, t.lng);
-      t.positionIdx = 0;
+  const nearestAlien = aliens.reduce((nearest, a) => {
+    const dist = Math.sqrt((a.lat - t.lat) ** 2 + (a.lng - t.lng) ** 2) * 111;
+    return (!nearest || dist < nearest.dist) ? { alien: a, dist } : nearest;
+  }, null);
+
+  if (nearestAlien && nearestAlien.dist < 3) {
+    t.status = 'WAITING';
+    if (t.fightersCount === 0) {
+      for (let i = 0; i < 4; i++) {
+        fighters.push({
+          id: Date.now() + i,
+          lat: t.lat,
+          lng: t.lng,
+          takilaId: t.id,
+          targetId: null,
+          phase: 'exit',
+          isAlive: true
+        });
+      }
+      t.fightersCount = 4;
     }
-    t.lat = t.route[t.positionIdx][0];
-    t.lng = t.route[t.positionIdx][1];
+    continue; // skip movement
   }
+
+  t.positionIdx = (t.positionIdx + 1);
+  if (t.positionIdx >= t.route.length) {
+    t.route = await getRoute(t.lat, t.lng);
+    t.positionIdx = 0;
+  }
+  t.lat = t.route[t.positionIdx][0];
+  t.lng = t.route[t.positionIdx][1];
+}
+
 
   for (const f of fighters) {
     if (!f.isAlive) continue;

@@ -19,32 +19,24 @@ setInterval(async () => {
   shots = [];
 
   for (const a of aliens) {
-  if (!a.route || a.route.length === 0) {
-    a.route = await getRoute(a.lat, a.lng);
-    a.positionIdx = 0;
+    a.positionIdx = (a.positionIdx + 1);
+    if (a.positionIdx >= a.route.length) {
+      a.route = await getRoute(a.lat, a.lng);
+      a.positionIdx = 0;
+    }
+    a.lat = a.route[a.positionIdx][0];
+    a.lng = a.route[a.positionIdx][1];
   }
-  a.positionIdx = (a.positionIdx + 1);
-  if (a.positionIdx >= a.route.length) {
-    a.route = await getRoute(a.lat, a.lng);
-    a.positionIdx = 0;
-  }
-  a.lat = a.route[a.positionIdx][0];
-  a.lng = a.route[a.positionIdx][1];
-}
 
-for (const t of takilas) {
-  if (!t.route || t.route.length === 0) {
-    t.route = await getRoute(t.lat, t.lng);
-    t.positionIdx = 0;
+  for (const t of takilas) {
+    t.positionIdx = (t.positionIdx + 1);
+    if (t.positionIdx >= t.route.length) {
+      t.route = await getRoute(t.lat, t.lng);
+      t.positionIdx = 0;
+    }
+    t.lat = t.route[t.positionIdx][0];
+    t.lng = t.route[t.positionIdx][1];
   }
-  t.positionIdx = (t.positionIdx + 1);
-  if (t.positionIdx >= t.route.length) {
-    t.route = await getRoute(t.lat, t.lng);
-    t.positionIdx = 0;
-  }
-  t.lat = t.route[t.positionIdx][0];
-  t.lng = t.route[t.positionIdx][1];
-}
 
   for (const f of fighters) {
     if (!f.isAlive) continue;

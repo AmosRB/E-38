@@ -140,10 +140,15 @@ for (const f of fighters) {
       const dy = target.lng - f.lng;
       const dist = Math.sqrt(dx * dx + dy * dy) * 111;
       if (dist < 0.3) {
-        shots.push({
-          geometry: { coordinates: [[f.lng, f.lat], [target.lng, target.lat]] },
-          properties: { shotType: 'fighter', timestamp: Date.now() },
-        });
+  shots.push({
+  fromLat: f.lat,
+  fromLng: f.lng,
+  toLat: target.lat,
+  toLng: target.lng,
+  type: 'fighter',
+  timestamp: Date.now(),
+});
+
         target.hitCount += 1;
       }
     }

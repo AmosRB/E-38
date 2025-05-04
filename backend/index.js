@@ -37,21 +37,26 @@ setInterval(() => {
   const now = Date.now();
   shots = [];
 
-  aliens.forEach(a => {
-    if (a.route) {
-      a.positionIdx = (a.positionIdx + 1) % a.route.length;
-      a.lat = a.route[a.positionIdx][0];
-      a.lng = a.route[a.positionIdx][1];
-    }
-  });
+aliens.forEach(a => {
+  a.positionIdx = (a.positionIdx + 1);
+  if (a.positionIdx >= a.route.length) {
+    a.route = generateRoute(a.lat, a.lng);
+    a.positionIdx = 0;
+  }
+  a.lat = a.route[a.positionIdx][0];
+  a.lng = a.route[a.positionIdx][1];
+});
 
-  takilas.forEach(t => {
-    if (t.route) {
-      t.positionIdx = (t.positionIdx + 1) % t.route.length;
-      t.lat = t.route[t.positionIdx][0];
-      t.lng = t.route[t.positionIdx][1];
-    }
-  });
+takilas.forEach(t => {
+  t.positionIdx = (t.positionIdx + 1);
+  if (t.positionIdx >= t.route.length) {
+    t.route = generateRoute(t.lat, t.lng);
+    t.positionIdx = 0;
+  }
+  t.lat = t.route[t.positionIdx][0];
+  t.lng = t.route[t.positionIdx][1];
+});
+;
 
   fighters.forEach(f => {
     if (!f.isAlive) return;

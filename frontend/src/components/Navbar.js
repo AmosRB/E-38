@@ -42,7 +42,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         fontSize: '16px',
         justifyContent: 'center'
       }}>
-        <span style={{ marginRight: '10px' }}>🛸 {typeof landingCount === 'number' ? landingCount : 0}</span>
+       <span>🛸 {typeof landingCount === 'number' ? landingCount : 0}</span>
         <span style={{
           display: 'inline-block',
           animation: 'spin 4s linear infinite',
@@ -50,7 +50,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         }}>
           🌍
         </span>
-        <span>👽 {alienCount}</span>
+       <span>👽 {typeof alienCount === 'number' ? alienCount : 0}</span>
       </div>
 
       <button onClick={onActivateCreate} style={{

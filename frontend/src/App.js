@@ -69,24 +69,22 @@ export default function App() {
         </div>
       )}
 
-      <MapView
-        center={[31.5, 34.8]}
-        landings={gameState.landings}
-        aliens={gameState.aliens}
-        takilas={gameState.takilas}
-        fighters={gameState.fighters}
-        shots={gameState.shots}
-        explosions={[]}
-onMapClick={async (latlng) => {
-  if (isPlacingLanding) {
-    await createLanding(latlng);
-    setIsPlacingLanding(false);
-  }
-}}
+    <MapView
+  center={[31.5, 34.8]}
+  landings={gameState.landings}
+  aliens={gameState.aliens}
+  takilas={gameState.takilas}
+  fighters={gameState.fighters}
+  shots={gameState.shots}
+  explosions={[]}
+  onMapClick={async (latlng) => {
+    if (isPlacingLanding) {
+      await createLanding(latlng);
+      setIsPlacingLanding(false);
+    }
+  }}
+/>
 
-
-        }}
-      />
 
       <BottomBar
         fighters={gameState.fighters}

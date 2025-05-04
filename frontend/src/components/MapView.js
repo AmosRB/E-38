@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -22,10 +22,7 @@ function createEmojiIcon(emoji, label = '') {
 }
 
 export default function MapView({ center, landings, aliens, takilas, fighters, explosions, shots, onMapClick }) {
-  const getPosition = (item) =>
-    item.route && item.route.length > 0 && item.positionIdx !== undefined
-      ? [item.route[item.positionIdx][0], item.route[item.positionIdx][1]]
-      : [item.lat, item.lng];
+  const getPosition = (item) => [item.lat, item.lng];
 
   return (
     <MapContainer
@@ -37,36 +34,26 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
       <ClickHandler onMapClick={onMapClick} />
 
       {landings.map(l => (
-        <Marker key={`landing-${l.id}`} position={getPosition(l)} icon={createEmojiIcon('🛸', l.landingCode)}>
-          <Popup>{l.locationName || `Landing ${l.landingCode}`}</Popup>
+        <Marker key={`landing-${l.id}`} position={getPosition(l)} icon={createEmojiIcon('🛸')}>
+          <Popup>{`Landing ${l.id}`}</Popup>
         </Marker>
       ))}
 
       {aliens.map(a => (
-        <React.Fragment key={`alien-${a.id}`}>
-          <Marker position={getPosition(a)} icon={createEmojiIcon('👽', a.alienCode)}>
-            <Popup>{`Alien ${a.alienCode}`}</Popup>
-          </Marker>
-          {a.route && a.route.length > 0 && (
-            <Polyline positions={a.route.map(p => [p[0], p[1]])} color="purple" />
-          )}
-        </React.Fragment>
+        <Marker key={`alien-${a.id}`} position={getPosition(a)} icon={createEmojiIcon('👽')}>
+          <Popup>{`Alien ${a.id}`}</Popup>
+        </Marker>
       ))}
 
       {takilas.map(t => (
-        <React.Fragment key={`takila-${t.id}`}>
-          <Marker position={getPosition(t)} icon={createEmojiIcon('🚙', t.takilaCode)}>
-            <Popup>{`Takila ${t.takilaCode}`}</Popup>
-          </Marker>
-          {t.route && t.route.length > 0 && (
-            <Polyline positions={t.route.map(p => [p[0], p[1]])} color="orange" />
-          )}
-        </React.Fragment>
+        <Marker key={`takila-${t.id}`} position={getPosition(t)} icon={createEmojiIcon('🚙')}>
+          <Popup>{`Takila ${t.id}`}</Popup>
+        </Marker>
       ))}
 
       {fighters.map(f => (
         <Marker key={`fighter-${f.id}`} position={getPosition(f)} icon={createEmojiIcon('🧍', f.phase)}>
-          <Popup>{`Fighter`}</Popup>
+          <Popup>{`Fighter ${f.id}`}</Popup>
         </Marker>
       ))}
 

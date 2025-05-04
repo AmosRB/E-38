@@ -13,6 +13,9 @@ export default function App() {
     fighters: [],
     shots: []
   });
+  const [isPlacingLanding, setIsPlacingLanding] = useState(false);
+  const [mouseX, setMouseX] = useState(0);
+  const [mouseY, setMouseY] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -20,6 +23,15 @@ export default function App() {
       setGameState(snapshot);
     }, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMouseX(e.clientX);
+      setMouseY(e.clientY);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const handleClearAliensLandings = async () => {
@@ -30,12 +42,6 @@ export default function App() {
     await fetch('/api/clear-takilas-fighters', { method: 'DELETE' });
   };
 
-  const handleCreateLanding = async () => {
-    await fetch('/api/create-landing', { method: 'POST' });
-  };
-  const [isPlacingLanding, setIsPlacingLanding] = useState(false);
-
-
   const handleCreateTakila = async () => {
     await fetch('/api/create-takila', { method: 'POST' });
   };
@@ -45,10 +51,24 @@ export default function App() {
       <Navbar
         landingCount={Array.isArray(gameState.landings) ? gameState.landings.length : 0}
         alienCount={Array.isArray(gameState.aliens) ? gameState.aliens.length : 0}
-         onActivateCreate={() => setIsPlacingLanding(true)}
-  onRequestClearAll={handleClearAliensLandings}
+        onActivateCreate={() => setIsPlacingLanding(true)}
+        onRequestClearAll={handleClearAliensLandings}
       />
-    
+
+      {isPlacingLanding && (
+        <div style={{
+          position: 'fixed',
+          pointerEvents: 'none',
+          fontSize: '30px',
+          top: mouseY,
+          left: mouseX,
+          transform: 'translate(-50%, -50%)',
+          zIndex: 9999
+        }}>
+          🛸
+        </div>
+      )}
+
       <MapView
         center={[31.5, 34.8]}
         landings={gameState.landings}
@@ -58,12 +78,17 @@ export default function App() {
         shots={gameState.shots}
         explosions={[]}
         onMapClick={async (latlng) => {
-    if (isPlacingLanding) {
-      await fetch('/api/create-landing', { method: 'POST', body: JSON.stringify({ latlng }), headers: { 'Content-Type': 'application/json' } });
-      setIsPlacingLanding(false);
-    }
-  }}
+          if (isPlacingLanding) {
+            await fetch('/api/create-landing', { 
+              method: 'POST', 
+              body: JSON.stringify({ latlng }), 
+              headers: { 'Content-Type': 'application/json' } 
+            });
+            setIsPlacingLanding(false);
+          }
+        }}
       />
+
       <BottomBar
         fighters={gameState.fighters}
         takilas={gameState.takilas}

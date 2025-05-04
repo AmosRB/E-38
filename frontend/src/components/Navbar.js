@@ -69,10 +69,11 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
       </button>
 
       <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
+        @media (max-width: 600px) {
+          .bottombar button {
+            font-size: 10px;
+            padding: 4px 6px;
+          }
       `}</style>
     </div>
   );

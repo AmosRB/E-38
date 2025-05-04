@@ -40,17 +40,16 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
         <span style={{ color: 'white', fontSize: '16px' }}>
    {typeof fightersCount === 'number' ? fightersCount : 0} 🧍 
 </span>
-        <span style={{
-          display: 'inline-block',
-          animation: 'spin 4s linear infinite',
-          margin: '0 10px'
-        }}>
+       <span style={{ color: 'white', fontSize: '16px' }}>
+          🧍 {typeof fightersCount === 'number' ? fightersCount : 0}
+        </span>
+        <span style={{ display: 'inline-block', animation: 'spin 4s linear infinite', margin: '0 10px' }}>
           🌍
         </span>
-     <span style={{ color: 'white', fontSize: '16px' }}> 
-  🚙 {typeof takilasCount === 'number' ? takilasCount : 0}
-</span>
-</div>
+        <span style={{ color: 'white', fontSize: '16px' }}>
+          🚙 {typeof takilasCount === 'number' ? takilasCount : 0}
+        </span>
+      </div>
 
       {/* כפתור JUMP */}
       <button onClick={onJump} style={{

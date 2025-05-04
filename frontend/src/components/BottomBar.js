@@ -1,6 +1,7 @@
 import React from 'react';
 
-export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
+export default function BottomBar({ onJump, onCallback, fighters, takilas, fightersCount, takilasCount }) {
+
    return (
  <div className="bottombar" style={{
   display: 'flex',

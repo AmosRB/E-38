@@ -67,13 +67,41 @@ setInterval(async () => {
 
 app.get('/api/snapshot', (req, res) => {
   res.json({
-    aliens,
-    fighters,
-    takilas,
-    landings,
+    aliens: aliens.map(a => ({
+      id: a.id,
+      lat: a.route[a.positionIdx][0],
+      lng: a.route[a.positionIdx][1],
+      hitCount: a.hitCount,
+      positionIdx: a.positionIdx
+    })),
+    fighters: fighters.map(f => ({
+      id: f.id,
+      lat: f.lat,
+      lng: f.lng,
+      takilaId: f.takilaId,
+      targetId: f.targetId,
+      phase: f.phase,
+      isAlive: f.isAlive
+    })),
+    takilas: takilas.map(t => ({
+      id: t.id,
+      lat: t.route[t.positionIdx][0],
+      lng: t.route[t.positionIdx][1],
+      status: t.status,
+      fightersCount: t.fightersCount,
+      positionIdx: t.positionIdx
+    })),
+    landings: landings.map(l => ({
+      id: l.id,
+      lat: l.route ? l.route[l.positionIdx][0] : l.lat,
+      lng: l.route ? l.route[l.positionIdx][1] : l.lng,
+      hitCount: l.hitCount,
+      positionIdx: l.positionIdx
+    })),
     shots,
   });
 });
+
 
 app.post('/api/create-landing', async (req, res) => {
   const { latlng } = req.body;

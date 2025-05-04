@@ -65,7 +65,6 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
   </React.Fragment>
 ))}
 
-
       {fighters.map(f => (
         <Marker key={`fighter-${f.id}`} position={getPosition(f)} icon={createEmojiIcon('🧍', f.phase)}>
           <Popup>{`Fighter`}</Popup>

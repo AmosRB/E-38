@@ -9,6 +9,8 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
   padding: '10px',
   position: 'fixed',
   top: '0',
+  left: '0',
+  right: '0',
   width: '100%',
   maxWidth: '100%',
   boxSizing: 'border-box',
@@ -68,12 +70,24 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         ⚡ LANDING
       </button>
 
-      <style>{`
+     <style>{`
+        .navbar {
+          z-index: 1000;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 600px) {
           .bottombar button {
             font-size: 10px;
             padding: 4px 6px;
           }
+          .navbar {
+            font-size: 12px;
+          }
+        }
       `}</style>
     </div>
   );

@@ -22,19 +22,21 @@ function createEmojiIcon(emoji, label = '') {
 
 export default function MapView({ center, landings, aliens, takilas, fighters, explosions, shots, onMapClick }) {
   return (
-    <MapContainer
-      center={center}
-      zoom={12}
-      style={{
-        height: '100vh',
-        width: '100vw',
-        margin: '0',
-        padding: '0',
-        position: 'absolute',
-        top: '0',
-        left: '0',
-      }}
-    >
+<MapContainer
+  center={center}
+  zoom={12}
+  style={{
+    height: '100vh',
+    width: '100vw',
+    margin: '0',
+    padding: '0',
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    zIndex: 0 // ✅ מוודא שהמפה ברקע
+  }}
+>
+
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
       <ClickHandler onMapClick={onMapClick} />
 

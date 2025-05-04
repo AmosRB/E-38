@@ -6,11 +6,12 @@ import 'leaflet/dist/leaflet.css';
 function ClickHandler({ onMapClick }) {
   useMapEvents({
     click(e) {
-      if (onMapClick) onMapClick(e);
+      if (onMapClick) onMapClick([e.latlng.lat, e.latlng.lng]);
     },
   });
   return null;
 }
+
 
 function createEmojiIcon(emoji, label = '') {
   return L.divIcon({

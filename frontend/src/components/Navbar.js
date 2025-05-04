@@ -1,4 +1,4 @@
-import React from 'react';
+Limport React from 'react';
 
 export default function Navbar({ landingCount, alienCount, onActivateCreate, onRequestClearAll }) {
   return (
@@ -33,7 +33,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         transition: '0.3s',
         marginRight: '10px'
       }}>
-        TAKE OFF
+        ESCAPE
       </button>
 
       <div className="nav-status" style={{
@@ -67,7 +67,7 @@ export default function Navbar({ landingCount, alienCount, onActivateCreate, onR
         transition: '0.3s',
         marginLeft: '10px'
       }}>
-        ⚡ LANDING
+        ⚡ LAND
       </button>
 
      <style>{`

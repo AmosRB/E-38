@@ -125,14 +125,15 @@ app.post('/api/create-takila', async (req, res) => {
     id,
     lat: tRoute[0][0],
     lng: tRoute[0][1],
-    status: 'WAITING',
-    fightersCount: 0,  // שים לב: מתחיל ב-0 לוחמים
+    status: 'MOVING',
+    fightersCount: 0,
     route: tRoute,
     positionIdx: 0
   });
 
   res.json({ message: 'Takila created' });
 });
+
 
 
 app.delete('/api/clear-landings-aliens', (req, res) => {

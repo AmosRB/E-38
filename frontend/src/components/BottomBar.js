@@ -50,7 +50,7 @@ export default function BottomBar({ onJump, onCallback, fighters, takilas }) {
      <span style={{ color: 'white', fontSize: '16px' }}> 
   🚙 {typeof takilasCount === 'number' ? takilasCount : 0}
 </span>
-
+</div>
 
       {/* כפתור JUMP */}
       <button onClick={onJump} style={{

@@ -48,10 +48,11 @@ export async function createLanding(latlng) {
 }
 
 
-export async function createTakila() {
-    try {
-        await fetch('/api/create-takila', { method: 'POST' });
-    } catch (error) {
-        console.error('❌ Error creating takila:', error);
-    }
+export async function createTakila(latlng) {
+  await fetch('/api/create-takila', {
+    method: 'POST',
+    body: JSON.stringify({ latlng }),
+    headers: { 'Content-Type': 'application/json' }
+  });
 }
+

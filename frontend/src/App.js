@@ -77,12 +77,13 @@ export default function App() {
         fighters={gameState.fighters}
         shots={gameState.shots}
         explosions={[]}
- onMapClick={async (latlng) => {
+onMapClick={async (latlng) => {
   if (isPlacingLanding) {
     await createLanding(latlng);
     setIsPlacingLanding(false);
   }
 }}
+
 
         }}
       />

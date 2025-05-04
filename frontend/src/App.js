@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import BottomBar from './components/BottomBar';
 import MapView from './components/MapView';
-import { fetchSnapshot, createLanding } from './components/api';
+import { fetchSnapshot, createLanding, createTakila } from './components/api';
 import './App.css';
 
 export default function App() {
@@ -45,6 +45,8 @@ export default function App() {
   const handleCreateTakila = async () => {
     await fetch('/api/create-takila', { method: 'POST' });
   };
+  const [isPlacingTakila, setIsPlacingTakila] = useState(false);
+
 
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -69,6 +71,21 @@ export default function App() {
         </div>
       )}
 
+        {isPlacingTakila && (
+  <div style={{
+    position: 'fixed',
+    pointerEvents: 'none',
+    fontSize: '30px',
+    top: mouseY,
+    left: mouseX,
+    transform: 'translate(-50%, -50%)',
+    zIndex: 9999
+  }}>
+    🚙
+  </div>
+)}
+
+
     <MapView
   center={[31.5, 34.8]}
   landings={gameState.landings}
@@ -77,12 +94,17 @@ export default function App() {
   fighters={gameState.fighters}
   shots={gameState.shots}
   explosions={[]}
-  onMapClick={async (latlng) => {
-    if (isPlacingLanding) {
-      await createLanding(latlng);
-      setIsPlacingLanding(false);
-    }
-  }}
+onMapClick={async (latlng) => {
+  if (isPlacingLanding) {
+    await createLanding(latlng);
+    setIsPlacingLanding(false);
+  }
+  if (isPlacingTakila) {
+    await createTakila(latlng);
+    setIsPlacingTakila(false);
+  }
+}}
+
 />
 
 
@@ -91,7 +113,7 @@ export default function App() {
         takilas={gameState.takilas}
         fightersCount={Array.isArray(gameState.fighters) ? gameState.fighters.length : 0}
         takilasCount={Array.isArray(gameState.takilas) ? gameState.takilas.length : 0}
-        onJump={handleCreateTakila}
+       onJump={() => setIsPlacingTakila(true)}
         onCallback={handleClearTakilasFighters}
       />
     </div>

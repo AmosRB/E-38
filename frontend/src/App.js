@@ -41,8 +41,8 @@ export default function App() {
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <Navbar
-        landingCount={gameState.landings.length}
-        alienCount={gameState.aliens.length}
+  landingCount={gameState.landings ? gameState.landings.length : 0}
+  alienCount={gameState.aliens ? gameState.aliens.length : 0}
         onActivateCreate={handleCreateLanding}
         onRequestClearAll={handleClearAliensLandings}
       />
@@ -57,8 +57,8 @@ export default function App() {
         onMapClick={() => {}}
       />
       <BottomBar
-        fighters={gameState.fighters}
-        takilas={gameState.takilas}
+     fighters={gameState.fighters || []}
+  takilas={gameState.takilas || []}
         onJump={handleCreateTakila}
         onCallback={handleClearTakilasFighters}
       />

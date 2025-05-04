@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import BottomBar from './components/BottomBar';
-import { fetchSnapshot } from './components/api';
 import MapView from './components/MapView';
+import { fetchSnapshot } from './components/api';
 import './App.css';
 
 export default function App() {
@@ -39,37 +39,29 @@ export default function App() {
   };
 
   return (
-    <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
-      <div style={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
-        <Navbar
-          landingCount={gameState.landings.length}
-          alienCount={gameState.aliens.length}
-          onActivateCreate={handleCreateLanding}
-          onRequestClearAll={handleClearAliensLandings}
-        />
-      </div>
-
-      <div style={{ position: 'absolute', top: '50px', bottom: '50px', width: '100%' }}>
-        <MapView
-          center={[31.5, 34.8]}
-          landings={gameState.landings}
-          aliens={gameState.aliens}
-          takilas={gameState.takilas}
-          fighters={gameState.fighters}
-          shots={gameState.shots}
-          explosions={[]}
-          onMapClick={() => {}}
-        />
-      </div>
-
-      <div style={{ position: 'fixed', bottom: 0, width: '100%', zIndex: 1000 }}>
-        <BottomBar
-          fighters={gameState.fighters}
-          takilas={gameState.takilas}
-          onJump={handleCreateTakila}
-          onCallback={handleClearTakilasFighters}
-        />
-      </div>
+    <div style={{ position: 'relative', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+      <Navbar
+        landingCount={gameState.landings.length}
+        alienCount={gameState.aliens.length}
+        onActivateCreate={handleCreateLanding}
+        onRequestClearAll={handleClearAliensLandings}
+      />
+      <MapView
+        center={[31.5, 34.8]}
+        landings={gameState.landings}
+        aliens={gameState.aliens}
+        takilas={gameState.takilas}
+        fighters={gameState.fighters}
+        shots={gameState.shots}
+        explosions={[]}
+        onMapClick={() => {}}
+      />
+      <BottomBar
+        fighters={gameState.fighters}
+        takilas={gameState.takilas}
+        onJump={handleCreateTakila}
+        onCallback={handleClearTakilasFighters}
+      />
     </div>
   );
 }

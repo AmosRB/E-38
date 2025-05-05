@@ -176,7 +176,7 @@ app.post('/api/create-takila', async (req, res) => {
   res.json({ message: 'Takila created' });
 });
 
-pp.delete('/api/clear-landings-aliens', (req, res) => {
+app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];
   aliens = [];
   res.json({ message: 'Landings and aliens cleared' });

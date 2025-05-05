@@ -154,13 +154,42 @@ setInterval(async () => {
 
 app.get('/api/snapshot', (req, res) => {
   res.json({
-    aliens: aliens.map(a => ({ id: a.id, lat: a.lat, lng: a.lng, hitCount: a.hitCount })),
-    fighters: fighters.map(f => ({ id: f.id, lat: f.lat, lng: f.lng, phase: f.phase, takilaId: f.takilaId })),
-    takilas: takilas.map(t => ({ id: t.id, lat: t.lat, lng: t.lng, status: t.status })),
-    landings: landings.map(l => ({ id: l.id, lat: l.lat, lng: l.lng, hitCount: l.hitCount })),
-    shots: shots.map(s => ({ fromLat: s.fromLat, fromLng: s.fromLng, toLat: s.toLat, toLng: s.toLng, type: s.type })),
+    aliens: aliens.map(a => ({
+      id: a.id,
+      lat: a.lat,
+      lng: a.lng,
+      hitCount: a.hitCount
+    })),
+    fighters: fighters.map(f => ({
+      id: f.id,
+      lat: f.lat,
+      lng: f.lng,
+      phase: f.phase,
+      takilaId: f.takilaId
+    })),
+    takilas: takilas.map(t => ({
+      id: t.id,
+      lat: t.lat,
+      lng: t.lng,
+      status: t.status,
+      fightersAlive: t.fightersAlive  // ✅ חדש
+    })),
+    landings: landings.map(l => ({
+      id: l.id,
+      lat: l.lat,
+      lng: l.lng,
+      hitCount: l.hitCount
+    })),
+    shots: shots.map(s => ({
+      fromLat: s.fromLat,
+      fromLng: s.fromLng,
+      toLat: s.toLat,
+      toLng: s.toLng,
+      type: s.type
+    })),
   });
 });
+
 
 app.post('/api/create-landing', async (req, res) => {
   const { latlng } = req.body;

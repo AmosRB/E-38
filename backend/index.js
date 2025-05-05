@@ -23,145 +23,154 @@ function generateFighterScatterRoutes(lat, lng) {
   ];
 }
 
+function generateRandomRoute(lat, lng) {
+  const route = [];
+  for (let i = 0; i < 3; i++) {
+    route.push([lat + (Math.random() - 0.5) * 0.005, lng + (Math.random() - 0.5) * 0.005]);
+  }
+  return route;
+}
+
+
 setInterval(async () => {
-  shots = shots.filter(s => Date.now() - s.timestamp < 2000);
-
-  // aliens movement
-  aliens.forEach(a => {
-    a.positionIdx = (a.positionIdx + 1) % a.route.length;
-    [a.lat, a.lng] = a.route[a.positionIdx];
-  });
-
-  // takila logic
-  for (const t of takilas) {
-    const currentFighters = fighters.filter(f => f.takilaId === t.id && f.isAlive);
-
-    // shoot at landings
-    landings.forEach(l => {
-      const dist = Math.sqrt((l.lat - t.lat) ** 2 + (l.lng - t.lng) ** 2) * 111;
-      if (dist <= 1.5) {
-        shots.push({ fromLat: t.lat, fromLng: t.lng, toLat: l.lat, toLng: l.lng, type: 'takila', color: 'purple', timestamp: Date.now() });
-        l.hitCount = (l.hitCount || 0) + 1;
-      }
-    });
-
-    const nearestAlien = aliens.find(a => Math.sqrt((a.lat - t.lat) ** 2 + (a.lng - t.lng) ** 2) * 111 < 3);
-
-    if (nearestAlien && currentFighters.length === 0) {
-      t.status = 'WAITING';
-      const scatterRoutes = generateFighterScatterRoutes(t.lat, t.lng);
-      for (let i = 0; i < t.fightersAlive; i++) {
-        fighters.push({
-          id: Date.now() + i,
-          lat: t.lat,
-          lng: t.lng,
-          takilaId: t.id,
-          targetId: nearestAlien.id,
-          phase: 'scatter',
-          isAlive: true,
-          route: scatterRoutes[i],
-          positionIdx: 0,
-        });
-      }
-    }
-
-    if (t.fightersAlive === 0) {
-      takilas = takilas.filter(x => x.id !== t.id);
-      continue;
-    }
-
-    t.positionIdx = (t.positionIdx + 1) % t.route.length;
-    [t.lat, t.lng] = t.route[t.positionIdx];
-  }
-
-  // landings shoot at takila
-  landings.forEach(l => {
-    takilas.forEach(t => {
-      const dist = Math.sqrt((t.lat - l.lat) ** 2 + (t.lng - l.lng) ** 2) * 111;
-      if (dist <= 1) {
-        shots.push({ fromLat: l.lat, fromLng: l.lng, toLat: t.lat, toLng: t.lng, type: 'landing', color: 'green', timestamp: Date.now() });
-      }
-    });
-  });
-
-  // fighters logic
-  fighters.forEach(f => {
-    if (!f.isAlive) return;
-    const target = aliens.find(a => a.id === f.targetId);
-
-  if (f.phase === 'scatter' && f.positionIdx === f.route.length - 1) {
-  const randomRoute = generateRandomRoute(f.lat, f.lng);
-  f.phase = 'random';
-  f.route = randomRoute;
-  f.positionIdx = 0;
-}
-
-if (f.phase === 'random' && f.positionIdx === f.route.length - 1) {
-  if (target) {
-    f.phase = 'chase';
-    f.route = [[target.lat, target.lng]];
-    f.positionIdx = 0;
-  }
-}
-
-if (f.phase === 'chase' && target) {
-  const dx = target.lat - f.lat;
-  const dy = target.lng - f.lng;
-  const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-  if (dist < 0.3) {
-    shots.push({ fromLat: f.lat, fromLng: f.lng, toLat: target.lat, toLng: target.lng, type: 'fighter', color: 'red', timestamp: Date.now() });
-    target.hitCount = (target.hitCount || 0) + 1;
-
-    if (target.hitCount >= 2) {
-      const homeTakila = takilas.find(t => t.id === f.takilaId);
-      if (homeTakila) {
-        f.route = [[homeTakila.lat, homeTakila.lng]];
-        f.phase = 'return';
-        f.positionIdx = 0;
-      }
-    }
-  }
-}
-
+  try {
+    shots = shots.filter(s => Date.now() - s.timestamp < 2000);
 
     aliens.forEach(a => {
-      const dist = Math.sqrt((f.lat - a.lat) ** 2 + (f.lng - a.lng) ** 2) * 111;
-      if (dist < 0.2 && f.isAlive) {
-        shots.push({ fromLat: a.lat, fromLng: a.lng, toLat: f.lat, toLng: f.lng, type: 'alien', color: 'blue', timestamp: Date.now() });
-        f.isAlive = false;
-        const takila = takilas.find(t => t.id === f.takilaId);
-        if (takila) takila.fightersAlive = Math.max(0, takila.fightersAlive - 1);
-      }
+      if (!a.route || a.route.length === 0) return;
+      a.positionIdx = (a.positionIdx + 1) % a.route.length;
+      [a.lat, a.lng] = a.route[a.positionIdx];
     });
 
-    if (f.phase === 'return') {
-      const homeTakila = takilas.find(t => t.id === f.takilaId);
-      if (homeTakila) {
-        const dist = Math.sqrt((homeTakila.lat - f.lat) ** 2 + (homeTakila.lng - f.lng) ** 2) * 111;
-        if (dist < 0.1) {
-          f.isAlive = false;
-          homeTakila.fightersAlive += 1;
-          if (fighters.filter(x => x.takilaId === homeTakila.id && x.isAlive).length === 0) {
-            homeTakila.status = 'MOVING';
+    for (const t of takilas) {
+      const currentFighters = fighters.filter(f => f.takilaId === t.id && f.isAlive);
+      landings.forEach(l => {
+        const dist = Math.sqrt((l.lat - t.lat) ** 2 + (l.lng - t.lng) ** 2) * 111;
+        if (dist <= 1.5) {
+          shots.push({ fromLat: t.lat, fromLng: t.lng, toLat: l.lat, toLng: l.lng, type: 'takila', color: 'purple', timestamp: Date.now() });
+          l.hitCount = (l.hitCount || 0) + 1;
+        }
+      });
+
+      const nearestAlien = aliens.find(a => Math.sqrt((a.lat - t.lat) ** 2 + (a.lng - t.lng) ** 2) * 111 < 3);
+
+      if (nearestAlien && currentFighters.length === 0) {
+        t.status = 'WAITING';
+        const scatterRoutes = generateFighterScatterRoutes(t.lat, t.lng);
+        for (let i = 0; i < t.fightersAlive; i++) {
+          fighters.push({
+            id: Date.now() + i,
+            lat: t.lat,
+            lng: t.lng,
+            takilaId: t.id,
+            targetId: nearestAlien.id,
+            phase: 'scatter',
+            isAlive: true,
+            route: scatterRoutes[i],
+            positionIdx: 0,
+          });
+        }
+      }
+
+      if (t.fightersAlive === 0) {
+        takilas = takilas.filter(x => x.id !== t.id);
+        continue;
+      }
+
+      if (t.route && t.route.length > 0) {
+        t.positionIdx = (t.positionIdx + 1) % t.route.length;
+        [t.lat, t.lng] = t.route[t.positionIdx];
+      }
+    }
+
+    landings.forEach(l => {
+      takilas.forEach(t => {
+        const dist = Math.sqrt((t.lat - l.lat) ** 2 + (t.lng - l.lng) ** 2) * 111;
+        if (dist <= 1) {
+          shots.push({ fromLat: l.lat, fromLng: l.lng, toLat: t.lat, toLng: t.lng, type: 'landing', color: 'green', timestamp: Date.now() });
+        }
+      });
+    });
+
+    fighters.forEach(f => {
+      if (!f.isAlive || !f.route || f.route.length === 0) return;
+      const target = aliens.find(a => a.id === f.targetId);
+
+      if (f.phase === 'scatter' && f.positionIdx === f.route.length - 1) {
+        f.phase = 'random';
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.positionIdx = 0;
+      }
+
+      if (f.phase === 'random' && f.positionIdx === f.route.length - 1) {
+        if (target) {
+          f.phase = 'chase';
+          f.route = [[target.lat, target.lng]];
+          f.positionIdx = 0;
+        }
+      }
+
+      if (f.phase === 'chase' && target) {
+        const dx = target.lat - f.lat;
+        const dy = target.lng - f.lng;
+        const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+        if (dist < 0.3) {
+          shots.push({ fromLat: f.lat, fromLng: f.lng, toLat: target.lat, toLng: target.lng, type: 'fighter', color: 'red', timestamp: Date.now() });
+          target.hitCount = (target.hitCount || 0) + 1;
+
+          if (target.hitCount >= 2) {
+            const homeTakila = takilas.find(t => t.id === f.takilaId);
+            if (homeTakila) {
+              f.route = [[homeTakila.lat, homeTakila.lng]];
+              f.phase = 'return';
+              f.positionIdx = 0;
+            }
           }
         }
       }
-    }
 
-    f.positionIdx = (f.positionIdx + 1) % f.route.length;
-    [f.lat, f.lng] = f.route[f.positionIdx];
-  });
+      aliens.forEach(a => {
+        const dist = Math.sqrt((f.lat - a.lat) ** 2 + (f.lng - a.lng) ** 2) * 111;
+        if (dist < 0.2 && f.isAlive) {
+          shots.push({ fromLat: a.lat, fromLng: a.lng, toLat: f.lat, toLng: f.lng, type: 'alien', color: 'blue', timestamp: Date.now() });
+          f.isAlive = false;
+          const takila = takilas.find(t => t.id === f.takilaId);
+          if (takila) takila.fightersAlive = Math.max(0, takila.fightersAlive - 1);
+        }
+      });
 
-  aliens = aliens.filter(a => a.hitCount < 2);
-  fighters = fighters.filter(f => f.isAlive);
-  landings = landings.filter(l => {
-    if (l.hitCount >= 4) {
-      aliens = aliens.filter(a => a.landingId !== l.id);
-      return false;
-    }
-    return true;
-  });
+      if (f.phase === 'return') {
+        const homeTakila = takilas.find(t => t.id === f.takilaId);
+        if (homeTakila) {
+          const dist = Math.sqrt((homeTakila.lat - f.lat) ** 2 + (homeTakila.lng - f.lng) ** 2) * 111;
+          if (dist < 0.1) {
+            f.isAlive = false;
+            homeTakila.fightersAlive += 1;
+            if (fighters.filter(x => x.takilaId === homeTakila.id && x.isAlive).length === 0) {
+              homeTakila.status = 'MOVING';
+            }
+          }
+        }
+      }
+
+      f.positionIdx = (f.positionIdx + 1) % f.route.length;
+      [f.lat, f.lng] = f.route[f.positionIdx];
+    });
+
+    aliens = aliens.filter(a => a.hitCount < 2);
+    fighters = fighters.filter(f => f.isAlive);
+    landings = landings.filter(l => {
+      if (l.hitCount >= 4) {
+        aliens = aliens.filter(a => a.landingId !== l.id);
+        return false;
+      }
+      return true;
+    });
+  } catch (err) {
+    console.error('Interval error:', err);
+  }
 }, 1500);
+
 
 app.get('/api/snapshot', (req, res) => {
   res.json({

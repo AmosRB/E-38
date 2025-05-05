@@ -107,7 +107,7 @@ setInterval(async () => {
             f.positionIdx = 0;
           }
         }
-        return; // עוצר את הלוחם בזמן הירי
+        return;
       }
     }
 
@@ -116,11 +116,9 @@ setInterval(async () => {
       if (f.phase === 'scatter') {
         f.route = generateRandomRoute(f.lat, f.lng);
         f.phase = 'random';
-      } else if (f.phase === 'random') {
-        if (target) {
-          f.route = [[target.lat, target.lng]];
-          f.phase = 'chase';
-        }
+      } else if (f.phase === 'random' && target) {
+        f.route = [[target.lat, target.lng]];
+        f.phase = 'chase';
       } else if (f.phase === 'chase' && !target) {
         const homeTakila = takilas.find(t => t.id === f.takilaId);
         if (homeTakila) {
@@ -147,7 +145,6 @@ setInterval(async () => {
   aliens = aliens.filter(a => a.hitCount < 2);
   fighters = fighters.filter(f => f.isAlive);
 }, 1500);
-
 
 app.get('/api/snapshot', (req, res) => {
   res.json({
@@ -194,4 +191,3 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-

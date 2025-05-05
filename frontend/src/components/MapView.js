@@ -53,16 +53,18 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
         </React.Fragment>
       ))}
 
-      {takilas.map(t => (
-        <React.Fragment key={`takila-${t.id}`}>
-          <Marker position={getPosition(t)} icon={createEmojiIcon('🚙', t.takilaCode)}>
-            <Popup>{`Takila ${t.takilaCode}`}</Popup>
-          </Marker>
-          {t.route && t.route.length > 0 && (
-            <Polyline positions={t.route.map(p => [p[0], p[1]])} color="orange" />
-          )}
-        </React.Fragment>
-      ))}
+{takilas.map(t => (
+  <Marker key={t.id} position={[t.lat, t.lng]} icon={takilaIcon}>
+    <Popup>
+      <div>
+        <strong>Takila {t.id}</strong><br />
+        Status: {t.status}<br />
+        Fighters Alive: {t.fightersAlive}
+      </div>
+    </Popup>
+  </Marker>
+))}
+
 
       {fighters.map(f => (
         <Marker key={`fighter-${f.id}`} position={getPosition(f)} icon={createEmojiIcon('🧍', f.phase)}>

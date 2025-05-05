@@ -176,14 +176,18 @@ app.post('/api/create-takila', async (req, res) => {
   res.json({ message: 'Takila created' });
 });
 
-app.delete('/api/clear-all', (req, res) => {
-  aliens = [];
-  fighters = [];
-  takilas = [];
+pp.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];
-  shots = [];
-  res.json({ message: 'All cleared' });
+  aliens = [];
+  res.json({ message: 'Landings and aliens cleared' });
 });
+
+app.delete('/api/clear-takilas-fighters', (req, res) => {
+  takilas = [];
+  fighters = [];
+  res.json({ message: 'Takilas and fighters cleared' });
+});
+
 
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 app.get('*', (req, res) => {

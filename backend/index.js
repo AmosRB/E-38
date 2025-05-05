@@ -84,83 +84,78 @@ setInterval(async () => {
     t.lng = t.route[t.positionIdx][1];
   }
 
+  for (const f of fighters) {
+    if (!f.isAlive) continue;
 
-for (const f of fighters) {
-  if (!f.isAlive) continue;
-
-  f.positionIdx++;
-  if (f.positionIdx >= f.route.length) {
-    if (f.phase === 'scatter') {
-      f.route = generateRandomRoute(f.lat, f.lng); // שלב 2
-      f.phase = 'random';
-    } else if (f.phase === 'random') {
-      const target = aliens.find(a => a.id === f.targetId);
-      if (target) {
-        f.route = [
-  [f.lat + (target.lat - f.lat) * 0.3, f.lng + (target.lng - f.lng) * 0.3],
-  [f.lat + (target.lat - f.lat) * 0.6, f.lng + (target.lng - f.lng) * 0.6],
-  [target.lat, target.lng]
-];
- // שלב 3 — קו ישיר אל החייזר
-        f.phase = 'chase';
-      }
-    } else if (f.phase === 'chase') {
-      const target = aliens.find(a => a.id === f.targetId);
-      if (!target || target.hitCount >= 2) {
+    f.positionIdx++;
+    if (f.positionIdx >= f.route.length) {
+      if (f.phase === 'scatter') {
+        f.route = generateRandomRoute(f.lat, f.lng);
+        f.phase = 'random';
+      } else if (f.phase === 'random') {
+        const target = aliens.find(a => a.id === f.targetId);
+        if (target) {
+          f.route = [
+            [f.lat + (target.lat - f.lat) * 0.3, f.lng + (target.lng - f.lng) * 0.3],
+            [f.lat + (target.lat - f.lat) * 0.6, f.lng + (target.lng - f.lng) * 0.6],
+            [target.lat, target.lng]
+          ];
+          f.phase = 'chase';
+        }
+      } else if (f.phase === 'chase') {
+        const target = aliens.find(a => a.id === f.targetId);
+        if (!target || target.hitCount >= 2) {
+          const homeTakila = takilas.find(t => t.id === f.takilaId);
+          if (homeTakila) {
+            f.route = [[homeTakila.lat, homeTakila.lng]];
+            f.phase = 'return';
+          }
+        }
+      } else if (f.phase === 'return') {
         const homeTakila = takilas.find(t => t.id === f.takilaId);
         if (homeTakila) {
-          f.route = [[homeTakila.lat, homeTakila.lng]]; // שלב 4 — חזרה לטקילה
-          f.phase = 'return';
+          const dx = homeTakila.lat - f.lat;
+          const dy = homeTakila.lng - f.lng;
+          const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+          if (dist < 0.1) {
+            homeTakila.status = 'MOVING';
+            homeTakila.fightersCount = 4;
+            f.isAlive = false;
+          }
         }
       }
-    } else if (f.phase === 'return') {
-      const homeTakila = takilas.find(t => t.id === f.takilaId);
-      if (homeTakila) {
-        const dx = homeTakila.lat - f.lat;
-        const dy = homeTakila.lng - f.lng;
+      f.positionIdx = 0;
+    }
+
+    f.lat = f.route[f.positionIdx][0];
+    f.lng = f.route[f.positionIdx][1];
+
+    if (f.phase === 'chase') {
+      const target = aliens.find(a => a.id === f.targetId);
+      if (target) {
+        const dx = target.lat - f.lat;
+        const dy = target.lng - f.lng;
         const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-        if (dist < 0.1) {
-          homeTakila.status = 'MOVING';
-          homeTakila.fightersCount = 4;
-          f.isAlive = false;
+        if (dist < 0.3) {
+          shots.push({
+            fromLat: f.lat,
+            fromLng: f.lng,
+            toLat: target.lat,
+            toLng: target.lng,
+            type: 'fighter',
+            timestamp: Date.now(),
+          });
+          target.hitCount += 1;
         }
       }
     }
-    f.positionIdx = 0;
   }
 
-  f.lat = f.route[f.positionIdx][0];
-  f.lng = f.route[f.positionIdx][1];
-
-  // שלב ירי מ־300 מטר
-  if (f.phase === 'chase') {
-    const target = aliens.find(a => a.id === f.targetId);
-    if (target) {
-      const dx = target.lat - f.lat;
-      const dy = target.lng - f.lng;
-      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-      if (dist < 0.3) {
-  shots.push({
-  fromLat: f.lat,
-  fromLng: f.lng,
-  toLat: target.lat,
-  toLng: target.lng,
-  type: 'fighter',
-  timestamp: Date.now(),
-});
-
-        target.hitCount += 1;
-      }
-    }
-  }
-}
-
+  fighters = fighters.filter(f => f.isAlive);
   aliens = aliens.filter(a => a.hitCount < 2);
   landings = landings.filter(l => l.hitCount < 4);
 
-
 }, 1000);
-
 app.get('/api/snapshot', (req, res) => {
   res.json({
     aliens: aliens.map(a => ({
@@ -198,7 +193,6 @@ app.get('/api/snapshot', (req, res) => {
   });
 });
 
-
 app.post('/api/create-landing', async (req, res) => {
   const { latlng } = req.body;
   const id = Date.now();
@@ -216,7 +210,7 @@ app.post('/api/create-takila', async (req, res) => {
   const { latlng } = req.body;
   const id = Date.now();
   const tRoute = await getRoute(latlng[0], latlng[1]);
-  
+
   takilas.push({
     id,
     lat: tRoute[0][0],
@@ -229,8 +223,6 @@ app.post('/api/create-takila', async (req, res) => {
 
   res.json({ message: 'Takila created' });
 });
-
-
 
 app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];

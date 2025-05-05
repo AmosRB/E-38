@@ -39,34 +39,93 @@ setInterval(async () => {
     [a.lat, a.lng] = a.route[a.positionIdx];
   });
 
-  takilas.forEach(t => {
-    if (t.status !== 'WAITING') {
-      t.positionIdx = (t.positionIdx + 1) % t.route.length;
-      [t.lat, t.lng] = t.route[t.positionIdx];
+  for (const t of takilas) {
+    if (t.status === 'WAITING') continue;
+
+    const nearestAlien = aliens.find(a => {
+      const dx = a.lat - t.lat;
+      const dy = a.lng - t.lng;
+      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+      return dist < 3;
+    });
+
+    const currentFighters = fighters.filter(f => f.takilaId === t.id && f.isAlive);
+    if (nearestAlien && currentFighters.length < 4) {
+      t.status = 'WAITING';
+      const scatterRoutes = generateFighterScatterRoutes(t.lat, t.lng);
+      for (let i = 0; i < 4; i++) {
+        fighters.push({
+          id: Date.now() + i,
+          lat: t.lat,
+          lng: t.lng,
+          takilaId: t.id,
+          targetId: nearestAlien.id,
+          phase: 'scatter',
+          isAlive: true,
+          route: scatterRoutes[i],
+          positionIdx: 0,
+        });
+      }
+      continue;
     }
-  });
+
+    t.positionIdx = (t.positionIdx + 1);
+    if (t.positionIdx >= t.route.length) {
+      t.route = await getRoute(t.lat, t.lng);
+      t.positionIdx = 0;
+    }
+    t.lat = t.route[t.positionIdx][0];
+    t.lng = t.route[t.positionIdx][1];
+  }
 
   fighters.forEach(f => {
     if (!f.isAlive) return;
+
+    const target = aliens.find(a => a.id === f.targetId);
+    if (f.phase === 'chase' && target) {
+      const dx = target.lat - f.lat;
+      const dy = target.lng - f.lng;
+      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+
+      if (dist < 0.3) {
+        shots.push({
+          fromLat: f.lat,
+          fromLng: f.lng,
+          toLat: target.lat,
+          toLng: target.lng,
+          type: 'fighter',
+          color: 'red',
+          timestamp: Date.now(),
+        });
+        target.hitCount = (target.hitCount || 0) + 1;
+
+        if (target.hitCount >= 2) {
+          const homeTakila = takilas.find(t => t.id === f.takilaId);
+          if (homeTakila) {
+            f.route = [[homeTakila.lat, homeTakila.lng]];
+            f.phase = 'return';
+            f.positionIdx = 0;
+          }
+        }
+        return; // עוצר את הלוחם בזמן הירי
+      }
+    }
+
     f.positionIdx++;
     if (f.positionIdx >= f.route.length) {
       if (f.phase === 'scatter') {
         f.route = generateRandomRoute(f.lat, f.lng);
         f.phase = 'random';
       } else if (f.phase === 'random') {
-        const target = aliens.find(a => a.id === f.targetId);
         if (target) {
           f.route = [[target.lat, target.lng]];
           f.phase = 'chase';
         }
-      } else if (f.phase === 'chase') {
-        const target = aliens.find(a => a.id === f.targetId);
-        if (!target || target.hitCount >= 2) {
-          const homeTakila = takilas.find(t => t.id === f.takilaId);
-          if (homeTakila) {
-            f.route = [[homeTakila.lat, homeTakila.lng]];
-            f.phase = 'return';
-          }
+      } else if (f.phase === 'chase' && !target) {
+        const homeTakila = takilas.find(t => t.id === f.takilaId);
+        if (homeTakila) {
+          f.route = [[homeTakila.lat, homeTakila.lng]];
+          f.phase = 'return';
         }
       } else if (f.phase === 'return') {
         const homeTakila = takilas.find(t => t.id === f.takilaId);
@@ -88,6 +147,7 @@ setInterval(async () => {
   aliens = aliens.filter(a => a.hitCount < 2);
   fighters = fighters.filter(f => f.isAlive);
 }, 1500);
+
 
 app.get('/api/snapshot', (req, res) => {
   res.json({

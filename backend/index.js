@@ -89,30 +89,40 @@ setInterval(async () => {
     if (!f.isAlive) return;
     const target = aliens.find(a => a.id === f.targetId);
 
-    if (f.phase === 'scatter' && f.positionIdx === f.route.length - 1) {
-      if (target) {
-        f.phase = 'chase';
-        f.route = [[f.lat, f.lng], [target.lat, target.lng]];
+  if (f.phase === 'scatter' && f.positionIdx === f.route.length - 1) {
+  const randomRoute = generateRandomRoute(f.lat, f.lng);
+  f.phase = 'random';
+  f.route = randomRoute;
+  f.positionIdx = 0;
+}
+
+if (f.phase === 'random' && f.positionIdx === f.route.length - 1) {
+  if (target) {
+    f.phase = 'chase';
+    f.route = [[target.lat, target.lng]];
+    f.positionIdx = 0;
+  }
+}
+
+if (f.phase === 'chase' && target) {
+  const dx = target.lat - f.lat;
+  const dy = target.lng - f.lng;
+  const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+  if (dist < 0.3) {
+    shots.push({ fromLat: f.lat, fromLng: f.lng, toLat: target.lat, toLng: target.lng, type: 'fighter', color: 'red', timestamp: Date.now() });
+    target.hitCount = (target.hitCount || 0) + 1;
+
+    if (target.hitCount >= 2) {
+      const homeTakila = takilas.find(t => t.id === f.takilaId);
+      if (homeTakila) {
+        f.route = [[homeTakila.lat, homeTakila.lng]];
+        f.phase = 'return';
         f.positionIdx = 0;
       }
     }
+  }
+}
 
-    if (f.phase === 'chase' && target) {
-      const dist = Math.sqrt((target.lat - f.lat) ** 2 + (target.lng - f.lng) ** 2) * 111;
-      if (dist < 0.3) {
-        shots.push({ fromLat: f.lat, fromLng: f.lng, toLat: target.lat, toLng: target.lng, type: 'fighter', color: 'red', timestamp: Date.now() });
-        target.hitCount = (target.hitCount || 0) + 1;
-
-        if (target.hitCount >= 2) {
-          const homeTakila = takilas.find(t => t.id === f.takilaId);
-          if (homeTakila) {
-            f.phase = 'return';
-            f.route = [[f.lat, f.lng], [homeTakila.lat, homeTakila.lng]];
-            f.positionIdx = 0;
-          }
-        }
-      }
-    }
 
     aliens.forEach(a => {
       const dist = Math.sqrt((f.lat - a.lat) ** 2 + (f.lng - a.lng) ** 2) * 111;

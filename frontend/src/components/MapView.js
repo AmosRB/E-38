@@ -54,7 +54,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
       ))}
 
 {takilas.map(t => (
-  <Marker key={t.id} position={[t.lat, t.lng]} icon={takilaIcon}>
+  <Marker key={t.id} position={[t.lat, t.lng]} icon={createEmojiIcon('🚙', t.status)}>
     <Popup>
       <div>
         <strong>Takila {t.id}</strong><br />
@@ -64,6 +64,7 @@ export default function MapView({ center, landings, aliens, takilas, fighters, e
     </Popup>
   </Marker>
 ))}
+
 
 
       {fighters.map(f => (

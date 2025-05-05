@@ -1,24 +1,27 @@
-import { Polyline, useMap } from 'react-leaflet';
-import { useEffect } from 'react';
-import L from 'leaflet';
+import React from 'react';
+import { Polyline } from 'react-leaflet';
 
+const ShotRenderer = ({ shots }) => {
+  const recentShots = shots.filter(shot => Date.now() - shot.timestamp < 5000);
 
-export default function ShotRenderer({ gameState }) {
-  const map = useMap();
+  const typeColors = {
+    fighter: 'red',
+    alien: 'blue',
+    takila: 'purple',
+    landing: 'green',
+  };
 
-  useEffect(() => {
-    gameState.shots.forEach(shot => {
-      const color =
-        shot.type === 'fighter' ? 'red' :
-        shot.type === 'alien' ? 'blue' :
-        shot.type === 'takila' ? 'purple' : 'green';
+  return (
+    <>
+      {recentShots.map((shot, index) => (
+        <Polyline
+          key={index}
+          positions={[[shot.fromLat, shot.fromLng], [shot.toLat, shot.toLng]]}
+          pathOptions={{ color: typeColors[shot.type] || 'gray', weight: 2 }}
+        />
+      ))}
+    </>
+  );
+};
 
-      const line = L.polyline([[shot.fromLat, shot.fromLng], [shot.toLat, shot.toLng]], { color });
-      line.addTo(map);
-
-      setTimeout(() => map.removeLayer(line), 2000);
-    });
-  }, [gameState.shots, map]);
-
-  return null;
-}
+export default ShotRenderer;

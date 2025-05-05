@@ -34,14 +34,15 @@ function generateRandomRoute(lat, lng) {
 setInterval(async () => {
   shots = shots.filter(s => Date.now() - s.timestamp < 2000);
 
+  // תנועה של aliens
   aliens.forEach(a => {
     a.positionIdx = (a.positionIdx + 1) % a.route.length;
     [a.lat, a.lng] = a.route[a.positionIdx];
   });
 
+  // TAKILA לוגיקה
   for (const t of takilas) {
-    if (t.status === 'WAITING') continue;
-
+    const currentFighters = fighters.filter(f => f.takilaId === t.id && f.isAlive);
     const nearestAlien = aliens.find(a => {
       const dx = a.lat - t.lat;
       const dy = a.lng - t.lng;
@@ -49,11 +50,11 @@ setInterval(async () => {
       return dist < 3;
     });
 
-    const currentFighters = fighters.filter(f => f.takilaId === t.id && f.isAlive);
-    if (nearestAlien && currentFighters.length < 4) {
+    // ניהול WAITING + ייצור לוחמים
+    if (nearestAlien && currentFighters.length === 0) {
       t.status = 'WAITING';
       const scatterRoutes = generateFighterScatterRoutes(t.lat, t.lng);
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < t.fightersAlive; i++) {
         fighters.push({
           id: Date.now() + i,
           lat: t.lat,
@@ -69,80 +70,85 @@ setInterval(async () => {
       continue;
     }
 
-    t.positionIdx = (t.positionIdx + 1);
-    if (t.positionIdx >= t.route.length) {
-      t.route = await getRoute(t.lat, t.lng);
-      t.positionIdx = 0;
+    // אם כל הלוחמים מתו → מחיקת TAKILA
+    if (t.fightersAlive === 0) {
+      takilas = takilas.filter(x => x.id !== t.id);
+      continue;
     }
-    t.lat = t.route[t.positionIdx][0];
-    t.lng = t.route[t.positionIdx][1];
+
+    // תנועה במסלול
+    t.positionIdx = (t.positionIdx + 1) % t.route.length;
+    [t.lat, t.lng] = t.route[t.positionIdx];
   }
 
-  fighters.forEach(f => {
-    if (!f.isAlive) return;
+  // לוגיקה של fighters
+ fighters.forEach(f => {
+  if (!f.isAlive) return;
 
-    const target = aliens.find(a => a.id === f.targetId);
-    if (f.phase === 'chase' && target) {
-      const dx = target.lat - f.lat;
-      const dy = target.lng - f.lng;
-      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+  const target = aliens.find(a => a.id === f.targetId);
 
-      if (dist < 0.3) {
-        shots.push({
-          fromLat: f.lat,
-          fromLng: f.lng,
-          toLat: target.lat,
-          toLng: target.lng,
-          type: 'fighter',
-          color: 'red',
-          timestamp: Date.now(),
-        });
-        target.hitCount = (target.hitCount || 0) + 1;
+  if (f.phase === 'chase' && target) {
+    const dx = target.lat - f.lat;
+    const dy = target.lng - f.lng;
+    const dist = Math.sqrt(dx * dx + dy * dy) * 111;
 
-        if (target.hitCount >= 2) {
-          const homeTakila = takilas.find(t => t.id === f.takilaId);
-          if (homeTakila) {
-            f.route = [[homeTakila.lat, homeTakila.lng]];
-            f.phase = 'return';
-            f.positionIdx = 0;
-          }
-        }
-        return;
-      }
-    }
+    if (dist < 0.3) {
+      shots.push({ fromLat: f.lat, fromLng: f.lng, toLat: target.lat, toLng: target.lng, type: 'fighter', color: 'red', timestamp: Date.now() });
+      target.hitCount = (target.hitCount || 0) + 1;
 
-    f.positionIdx++;
-    if (f.positionIdx >= f.route.length) {
-      if (f.phase === 'scatter') {
-        f.route = generateRandomRoute(f.lat, f.lng);
-        f.phase = 'random';
-      } else if (f.phase === 'random' && target) {
-        f.route = [[target.lat, target.lng]];
-        f.phase = 'chase';
-      } else if (f.phase === 'chase' && !target) {
+      if (target.hitCount >= 2) {
         const homeTakila = takilas.find(t => t.id === f.takilaId);
         if (homeTakila) {
           f.route = [[homeTakila.lat, homeTakila.lng]];
           f.phase = 'return';
-        }
-      } else if (f.phase === 'return') {
-        const homeTakila = takilas.find(t => t.id === f.takilaId);
-        if (homeTakila) {
-          const dx = homeTakila.lat - f.lat;
-          const dy = homeTakila.lng - f.lng;
-          const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-          if (dist < 0.1) {
-            homeTakila.status = 'MOVING';
-            f.isAlive = false;
-          }
+          f.positionIdx = 0;
         }
       }
-      f.positionIdx = 0;
     }
-    [f.lat, f.lng] = f.route[f.positionIdx];
+  }
+
+    // alien יורה בחזרה
+  aliens.forEach(a => {
+    const dx = f.lat - a.lat;
+    const dy = f.lng - a.lng;
+    const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+    if (dist < 0.2 && f.isAlive) {
+      shots.push({ fromLat: a.lat, fromLng: a.lng, toLat: f.lat, toLng: f.lng, type: 'alien', color: 'blue', timestamp: Date.now() });
+      f.isAlive = false;
+      const takila = takilas.find(t => t.id === f.takilaId);
+      if (takila) takila.fightersAlive = Math.max(0, takila.fightersAlive - 1);
+    }
   });
 
+  // ניהול שלב return
+  if (f.phase === 'return') {
+    const homeTakila = takilas.find(t => t.id === f.takilaId);
+    if (homeTakila) {
+      const dx = homeTakila.lat - f.lat;
+      const dy = homeTakila.lng - f.lng;
+      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+
+      if (dist < 0.1) {
+        f.isAlive = false; // הלוחם "נבלע" בחזרה בטקילה
+        homeTakila.fightersAlive += 1;
+
+        // אם כל הלוחמים חזרו → הוציא סטטוס WAITING
+        const takilaFighters = fighters.filter(x => x.takilaId === homeTakila.id);
+        if (takilaFighters.filter(x => x.isAlive).length === 0) {
+          homeTakila.status = 'MOVING';
+        }
+      }
+    }
+  }
+
+    // עדכון מסלול
+  f.positionIdx = (f.positionIdx + 1) % f.route.length;
+  [f.lat, f.lng] = f.route[f.positionIdx];
+});
+
+  // מחיקת aliens מתים
   aliens = aliens.filter(a => a.hitCount < 2);
+  // מחיקת fighters מתים
   fighters = fighters.filter(f => f.isAlive);
 }, 1500);
 
@@ -172,9 +178,10 @@ app.post('/api/create-takila', async (req, res) => {
   const { latlng } = req.body;
   const id = Date.now();
   const tRoute = await getRoute(latlng[0], latlng[1]);
-  takilas.push({ id, lat: tRoute[0][0], lng: tRoute[0][1], status: 'MOVING', route: tRoute, positionIdx: 0 });
+  takilas.push({ id, lat: tRoute[0][0], lng: tRoute[0][1], status: 'MOVING', route: tRoute, positionIdx: 0, fightersAlive: 4 });
   res.json({ message: 'Takila created' });
 });
+
 
 app.delete('/api/clear-landings-aliens', (req, res) => {
   landings = [];

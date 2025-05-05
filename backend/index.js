@@ -128,26 +128,46 @@ setInterval(async () => {
     f.lat = f.route[f.positionIdx][0];
     f.lng = f.route[f.positionIdx][1];
 
-    const target = aliens.find(a => a.id === f.targetId);
-    if (f.phase === 'chase' && target) {
-      const dx = target.lat - f.lat;
-      const dy = target.lng - f.lng;
-      const dist = Math.sqrt(dx * dx + dy * dy) * 111;
-      if (dist < 0.3) {
-        shots.push({
-          fromLat: f.lat,
-          fromLng: f.lng,
-          toLat: target.lat,
-          toLng: target.lng,
-          type: 'fighter',
-          color: 'red',
-          timestamp: now,
-        });
-        target.hitCount += 1;
+   const target = aliens.find(a => a.id === f.targetId);
+
+  if (f.phase === 'chase' && target) {
+    const dx = target.lat - f.lat;
+    const dy = target.lng - f.lng;
+    const dist = Math.sqrt(dx * dx + dy * dy) * 111;
+
+    if (dist < 0.3) {
+      // שלב ירי — עצירה
+      shots.push({
+        fromLat: f.lat,
+        fromLng: f.lng,
+        toLat: target.lat,
+        toLng: target.lng,
+        type: 'fighter',
+        color: 'red',
+        timestamp: Date.now(),
+      });
+      target.hitCount += 1;
+
+      // אם החייזר מת — ממשיך חזרה
+      if (target.hitCount >= 2) {
+        const homeTakila = takilas.find(t => t.id === f.takilaId);
+        if (homeTakila) {
+          f.route = [[homeTakila.lat, homeTakila.lng]];
+          f.phase = 'return';
+          f.positionIdx = 0;
+        }
       }
+      continue; // עצירה במקום
     }
   }
 
+  // ממשיך לנוע רק אם לא עוצר בירי
+  f.positionIdx++;
+  if (f.positionIdx >= f.route.length) f.positionIdx = 0;
+
+  f.lat = f.route[f.positionIdx][0];
+  f.lng = f.route[f.positionIdx][1];
+}
   for (const a of aliens) {
     const nearFighters = fighters.filter(f => f.isAlive && f.phase === 'chase' && f.targetId === a.id);
     for (const f of nearFighters) {
